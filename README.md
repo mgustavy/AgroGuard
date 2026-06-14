@@ -10,7 +10,7 @@ Most crop disease tools need a sick plant before they can help. AgroGuard does n
 
 ## Demo
 
-[Watch the demo](https://www.bugufi.link/fG5eWM)
+[Watch the demo](https://shorturl.at/EblvW)
 
 
 ---
