@@ -4,9 +4,15 @@ A weather-driven crop disease early warning system for East African smallholder 
 
 Most crop disease tools need a sick plant before they can help. AgroGuard does not. It uses historical weather patterns to predict district-level disease risk 14 days before symptoms appear, giving cooperative field officers time to act before an outbreak takes hold.
 
+## Github Repository
+
+[Link to Github Repository](https://github.com/mgustavy/AgroGuard)
+
 ## Demo
 
 [Watch the demo](https://www.bugufi.link/fG5eWM)
+
+
 ---
 
 ## The Problem
