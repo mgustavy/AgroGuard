@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Trained model artifacts (exported from the notebook; see README)
+models/
+*.joblib
+
+# Generated pipeline data
+weather_cache.csv
+sprint1_features.csv
+
+# OS
+.DS_Store
