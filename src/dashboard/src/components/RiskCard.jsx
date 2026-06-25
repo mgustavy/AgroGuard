@@ -1,0 +1,29 @@
+const RISK_COLORS = {
+  HIGH: '#ef4444',
+  MEDIUM: '#f59e0b',
+  LOW: '#22c55e',
+}
+
+export default function RiskCard({ level = 'HIGH', probability = 78, recommendation }) {
+  return (
+    <div className="rounded border border-border bg-surface p-6">
+      <div className="flex">
+        <div className="flex-1 pr-6">
+          <div className="text-4xl font-semibold" style={{ color: RISK_COLORS[level] }}>
+            {level}
+          </div>
+          <div className="mt-1 text-sm text-secondary">Disease Risk Level</div>
+        </div>
+        <div className="flex-1 border-l border-border pl-6">
+          <div className="text-4xl font-semibold text-primary">{probability}%</div>
+          <div className="mt-1 text-sm text-secondary">Probability Score</div>
+        </div>
+      </div>
+
+      <div className="mt-6 border-t border-border pt-4">
+        <div className="text-sm text-secondary">Recommendation</div>
+        <p className="mt-1 text-primary">{recommendation}</p>
+      </div>
+    </div>
+  )
+}
