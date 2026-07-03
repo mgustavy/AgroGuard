@@ -3,6 +3,7 @@ import { Droplets, Thermometer, Wind, BarChart2 } from 'lucide-react'
 import Sidebar from '@/components/Sidebar'
 import RiskCard from '@/components/RiskCard'
 import StatCard from '@/components/StatCard'
+import ForecastChart from '@/components/ForecastChart'
 import {
   Select,
   SelectTrigger,
@@ -10,7 +11,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select'
-import { fetchDistrictRisk } from '@/lib/api'
+import { fetchDistrictRisk, fetchForecast } from '@/lib/api'
 
 const DISTRICTS = ['Huye', 'Arusha', 'Nakuru', 'Mbarara']
 const CROPS = ['Maize', 'Beans', 'Potato', 'Banana']
@@ -40,6 +41,7 @@ export default function Dashboard() {
   const [district, setDistrict] = useState('Arusha')
   const [crop, setCrop] = useState('Maize')
   const [data, setData] = useState(null)
+  const [forecast, setForecast] = useState(null)
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -57,6 +59,16 @@ export default function Dashboard() {
       active = false
     }
   }, [district, crop])
+
+  useEffect(() => {
+    let active = true
+    fetchForecast(district)
+      .then((result) => active && setForecast(result))
+      .catch(() => active && setForecast(null))
+    return () => {
+      active = false
+    }
+  }, [district])
 
   const features = data?.features
 
@@ -115,10 +127,14 @@ export default function Dashboard() {
 
           <div className="rounded border border-border bg-surface p-6">
             <h2 className="text-base font-semibold text-primary">14-Day Forecast</h2>
-            <div className="mt-4 flex h-[200px] flex-col items-center justify-center rounded border border-border bg-elevated">
-              <BarChart2 className="h-8 w-8 text-secondary" />
-              <span className="mt-2 text-sm text-secondary">Chart coming in Sprint 2</span>
-            </div>
+            {forecast ? (
+              <ForecastChart series={forecast.series} />
+            ) : (
+              <div className="mt-4 flex h-[200px] flex-col items-center justify-center rounded border border-border bg-elevated">
+                <BarChart2 className="h-8 w-8 text-secondary" />
+                <span className="mt-2 text-sm text-secondary">Forecast unavailable</span>
+              </div>
+            )}
           </div>
         </div>
       </main>

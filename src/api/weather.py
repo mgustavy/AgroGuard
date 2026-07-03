@@ -37,16 +37,16 @@ DISTRICT_COORDS = {
 }
 
 
-def fetch_recent_daily(lat: float, lon: float, past_days: int = 14,
-                       retries: int = 3, backoff: float = 2.0) -> pd.DataFrame:
-    """Return recent daily weather with a daily-mean humidity column."""
+def fetch_daily(lat: float, lon: float, past_days: int = 14, forecast_days: int = 1,
+                retries: int = 3, backoff: float = 2.0) -> pd.DataFrame:
+    """Return daily weather (past and/or forecast) with a daily-mean humidity column."""
     params = {
         "latitude": lat,
         "longitude": lon,
         "daily": ["temperature_2m_max", "temperature_2m_min", "precipitation_sum"],
         "hourly": ["relative_humidity_2m"],
         "past_days": past_days,
-        "forecast_days": 1,
+        "forecast_days": forecast_days,
         "timezone": "Africa/Nairobi",
     }
     payload = None
@@ -75,28 +75,36 @@ def fetch_recent_daily(lat: float, lon: float, past_days: int = 14,
     return daily.dropna(subset=["temp_max", "temp_min", "rainfall", "humidity"])
 
 
-def latest_features(daily: pd.DataFrame) -> dict:
+def engineer_features(daily: pd.DataFrame) -> pd.DataFrame:
     """
-    Engineer the four model features for the most recent day. Definitions match
-    the notebook: consecutive wet days, 7-day temperature spread, humidity
-    deviation from the 7-day mean, and the 7-day rainfall total.
+    Add the four model features for every day. Definitions match the notebook:
+    consecutive wet days, 7-day temperature spread, humidity deviation from the
+    7-day mean, and the 7-day rainfall total.
     """
     daily = daily.sort_values("date").reset_index(drop=True)
 
-    consecutive = 0
+    consecutive, count = [], 0
     for rain in daily["rainfall"]:
-        consecutive = consecutive + 1 if rain >= 1.0 else 0
+        count = count + 1 if rain >= 1.0 else 0
+        consecutive.append(count)
 
-    spread = (daily["temp_max"] - daily["temp_min"]).rolling(7, min_periods=1).mean()
     humidity = daily["humidity"]
-    humidity_deviation = humidity - humidity.rolling(7, min_periods=1).mean()
+    daily["consecutive_wet_days"] = consecutive
+    daily["temp_spread_7d"] = (daily["temp_max"] - daily["temp_min"]).rolling(7, min_periods=1).mean().round(1)
+    daily["humidity_deviation"] = (humidity - humidity.rolling(7, min_periods=1).mean()).round(1)
+    daily["rainfall_7d_total"] = daily["rainfall"].rolling(7, min_periods=1).sum().round(1)
+    return daily
 
+
+def latest_features(daily: pd.DataFrame) -> dict:
+    """Engineer features and return the most recent day as a plain dict."""
+    row = engineer_features(daily).iloc[-1]
     return {
-        "as_of": daily["date"].iloc[-1].date().isoformat(),
+        "as_of": row["date"].date().isoformat(),
         "features": {
-            "consecutive_wet_days": int(consecutive),
-            "temp_spread_7d": round(float(spread.iloc[-1]), 1),
-            "humidity_deviation": round(float(humidity_deviation.iloc[-1]), 1),
-            "rainfall_7d_total": round(float(daily["rainfall"].tail(7).sum()), 1),
+            "consecutive_wet_days": int(row["consecutive_wet_days"]),
+            "temp_spread_7d": round(float(row["temp_spread_7d"]), 1),
+            "humidity_deviation": round(float(row["humidity_deviation"]), 1),
+            "rainfall_7d_total": round(float(row["rainfall_7d_total"]), 1),
         },
     }
