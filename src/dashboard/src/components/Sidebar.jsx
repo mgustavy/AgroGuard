@@ -2,6 +2,7 @@ import { Map, Wheat, AlertTriangle, Settings, LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Wordmark from '@/components/Wordmark'
 import { signOut } from '@/lib/auth'
+import { useAuth } from '@/context/AuthContext'
 
 const NAV_ITEMS = [
   { icon: Map, label: 'Districts', active: true },
@@ -10,11 +11,20 @@ const NAV_ITEMS = [
   { icon: Settings, label: 'Settings' },
 ]
 
+function initials(name) {
+  const parts = (name || '').trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return 'FO'
+  return (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase()
+}
+
 export default function Sidebar() {
   const navigate = useNavigate()
+  const { session, profile } = useAuth()
+  const name = profile?.full_name || 'Field Officer'
+  const email = session?.user?.email
 
-  function handleSignOut() {
-    signOut()
+  async function handleSignOut() {
+    await signOut()
     navigate('/signin')
   }
 
@@ -41,9 +51,12 @@ export default function Sidebar() {
       <div className="border-t border-border p-3">
         <div className="mb-2 flex items-center gap-3 px-1">
           <div className="flex h-8 w-8 items-center justify-center rounded bg-elevated text-xs text-primary">
-            FO
+            {initials(profile?.full_name)}
           </div>
-          <span className="text-sm text-secondary">Field Officer</span>
+          <div className="min-w-0">
+            <div className="truncate text-sm text-primary">{name}</div>
+            {email && <div className="truncate text-xs text-secondary">{email}</div>}
+          </div>
         </div>
         <button
           onClick={handleSignOut}
