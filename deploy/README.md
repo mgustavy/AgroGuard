@@ -66,6 +66,10 @@ cd /opt/agroguard/AgroGuard
 
 ## 5. Run the API under systemd
 
+Before copying the unit, edit `AGROGUARD_CORS_ORIGINS` in
+`deploy/systemd/agroguard-api.service` to your site origin (e.g.
+`http://YOUR_VM_IP` or `https://your-domain`) so only your dashboard can call the API.
+
 ```bash
 sudo cp deploy/systemd/agroguard-api.service /etc/systemd/system/
 sudo systemctl daemon-reload
