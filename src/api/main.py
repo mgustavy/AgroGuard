@@ -1,16 +1,32 @@
+import json
 import os
 from pathlib import Path
 from typing import Literal, Optional
 
 import joblib
 import numpy as np
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+
+try:
+    from . import weather
+except ImportError:  # allows running as `uvicorn main:app` from src/api
+    import weather
 
 app = FastAPI(
     title="AgroGuard API",
     description="Weather-driven crop disease early warning system for East African smallholder farmers.",
     version="0.2.0",
+)
+
+# Allow the dashboard and other browser clients to call the API in development.
+CORS_ORIGINS = os.environ.get("AGROGUARD_CORS_ORIGINS", "*").split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=CORS_ORIGINS,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 CROPS = ["maize", "beans", "potato", "banana"]
@@ -65,7 +81,22 @@ def load_model() -> tuple[Optional[object], list]:
     return bundle, DEFAULT_FEATURES
 
 
+def load_risk_snapshot() -> dict:
+    """
+    Load the precomputed per-district risk snapshot exported from the notebook
+    (latest scored day per district, on real ERA5 data). Path comes from
+    AGROGUARD_RISK_DATA, defaulting to data/district_risk.json next to this file.
+    """
+    default_path = Path(__file__).resolve().parent / "data" / "district_risk.json"
+    path = os.environ.get("AGROGUARD_RISK_DATA", str(default_path))
+    if not os.path.exists(path):
+        return {}
+    with open(path) as handle:
+        return json.load(handle).get("districts", {})
+
+
 MODEL, FEATURE_ORDER = load_model()
+RISK_SNAPSHOT = load_risk_snapshot()
 
 
 class RiskRequest(BaseModel):
@@ -83,6 +114,38 @@ class RiskResponse(BaseModel):
     risk_level: Literal["HIGH", "MEDIUM", "LOW"]
     probability: float
     recommendation: str
+    model_version: str
+
+
+class DistrictFeatures(BaseModel):
+    consecutive_wet_days: int
+    temp_spread_7d: float
+    humidity_deviation: float
+    rainfall_7d_total: float
+
+
+class DistrictRiskResponse(BaseModel):
+    district: str
+    country: str
+    crop: str
+    as_of: str
+    risk_level: Literal["HIGH", "MEDIUM", "LOW"]
+    probability: float
+    recommendation: str
+    features: DistrictFeatures
+    model_version: str
+
+
+class ForecastPoint(BaseModel):
+    date: str
+    probability: float
+    risk_level: Literal["HIGH", "MEDIUM", "LOW"]
+
+
+class ForecastResponse(BaseModel):
+    district: str
+    country: str
+    series: list[ForecastPoint]
     model_version: str
 
 
@@ -136,6 +199,7 @@ def health_check():
         "service": "AgroGuard API",
         "version": "0.2.0",
         "model_loaded": MODEL is not None,
+        "districts_loaded": len(RISK_SNAPSHOT),
         "features": FEATURE_ORDER,
     }
 
@@ -161,6 +225,114 @@ def get_risk(request: RiskRequest):
         probability=round(probability, 2),
         recommendation=RECOMMENDATIONS[risk_level][request.crop],
         model_version=model_version,
+    )
+
+
+@app.get("/risk/{district}", response_model=DistrictRiskResponse, tags=["Predictions"])
+def get_district_risk(
+    district: str,
+    crop: Literal["maize", "beans", "potato", "banana"] = "maize",
+):
+    """
+    Return the latest precomputed disease risk for a district, scored by the
+    trained model on real ERA5 weather. The crop selects the recommendation text
+    but does not change the risk level, which is weather-driven.
+    """
+    record = RISK_SNAPSHOT.get(district)
+    if record is None:
+        raise HTTPException(status_code=404,
+                            detail=f"No risk data for district '{district}'")
+    risk_level = record["risk_level"]
+    return DistrictRiskResponse(
+        district=record["district"],
+        country=record["country"],
+        crop=crop,
+        as_of=record["as_of"],
+        risk_level=risk_level,
+        probability=record["probability"],
+        recommendation=RECOMMENDATIONS[risk_level][crop],
+        features=DistrictFeatures(**record["features"]),
+        model_version="xgboost-v0.2 (precomputed from real ERA5 data)",
+    )
+
+
+def probability_from_features(features: dict) -> float:
+    """Score a feature dict with the trained model, honouring the feature order."""
+    row = np.array([[features[name] for name in FEATURE_ORDER]], dtype=float)
+    return float(MODEL.predict_proba(row)[0, 1])
+
+
+@app.get("/risk/live/{district}", response_model=DistrictRiskResponse, tags=["Predictions"])
+def get_live_risk(
+    district: str,
+    crop: Literal["maize", "beans", "potato", "banana"] = "maize",
+):
+    """
+    Fetch recent Open-Meteo weather for a district, engineer the four features,
+    and score them with the trained model. Requires the model file to be present.
+    """
+    coords = weather.DISTRICT_COORDS.get(district)
+    if coords is None:
+        raise HTTPException(status_code=404, detail=f"Unknown district '{district}'")
+    if MODEL is None:
+        raise HTTPException(status_code=503,
+                            detail="Model not loaded; live scoring is unavailable.")
+    try:
+        daily = weather.fetch_daily(coords["lat"], coords["lon"])
+        latest = weather.latest_features(daily)
+    except RuntimeError as error:
+        raise HTTPException(status_code=502, detail=str(error))
+
+    features = latest["features"]
+    probability = probability_from_features(features)
+    risk_level = band_probability(probability)
+    return DistrictRiskResponse(
+        district=district,
+        country=coords["country"],
+        crop=crop,
+        as_of=latest["as_of"],
+        risk_level=risk_level,
+        probability=round(probability, 2),
+        recommendation=RECOMMENDATIONS[risk_level][crop],
+        features=DistrictFeatures(**features),
+        model_version="xgboost-v0.2 (live Open-Meteo weather)",
+    )
+
+
+@app.get("/forecast/{district}", response_model=ForecastResponse, tags=["Predictions"])
+def get_forecast(district: str, days: int = 14):
+    """
+    Return a rolling risk forecast for the next `days` days, scoring each day's
+    engineered features (built from recent plus forecast weather) with the model.
+    """
+    coords = weather.DISTRICT_COORDS.get(district)
+    if coords is None:
+        raise HTTPException(status_code=404, detail=f"Unknown district '{district}'")
+    if MODEL is None:
+        raise HTTPException(status_code=503,
+                            detail="Model not loaded; forecast is unavailable.")
+    try:
+        daily = weather.fetch_daily(coords["lat"], coords["lon"],
+                                    past_days=14, forecast_days=days)
+        engineered = weather.engineer_features(daily).tail(days)
+    except RuntimeError as error:
+        raise HTTPException(status_code=502, detail=str(error))
+
+    rows = np.array(engineered[FEATURE_ORDER].values, dtype=float)
+    probabilities = MODEL.predict_proba(rows)[:, 1]
+    series = [
+        ForecastPoint(
+            date=day.date().isoformat(),
+            probability=round(float(prob), 2),
+            risk_level=band_probability(prob),
+        )
+        for day, prob in zip(engineered["date"], probabilities)
+    ]
+    return ForecastResponse(
+        district=district,
+        country=coords["country"],
+        series=series,
+        model_version="xgboost-v0.2 (live Open-Meteo forecast)",
     )
 
 

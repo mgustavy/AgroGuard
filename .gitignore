@@ -8,9 +8,11 @@ env/
 # Jupyter
 .ipynb_checkpoints/
 
-# Trained model artifacts (exported from the notebook; see README)
-models/
+# Trained model artifacts. The active model is committed so the API works on a
+# fresh clone; any other model files are ignored.
+models/*
 *.joblib
+!models/xgb_risk_model.joblib
 
 # Generated pipeline data
 weather_cache*.csv
