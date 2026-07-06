@@ -23,3 +23,7 @@ export async function fetchDistrictRisk(district, crop) {
 export async function fetchForecast(district) {
   return getJson(`/forecast/${encodeURIComponent(district)}`)
 }
+
+export async function fetchAlerts() {
+  return getJson('/alerts')
+}
