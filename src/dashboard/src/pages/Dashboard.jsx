@@ -69,7 +69,8 @@ export default function Dashboard() {
             <h1 className="text-xl font-semibold text-primary">Risk Overview</h1>
             {data && (
               <p className="mt-1 text-sm text-secondary">
-                {data.district}, {data.country} &middot; as of {data.as_of}
+                {data.district}, {data.country} &middot;{' '}
+                {data.live ? 'live weather' : 'snapshot'} &middot; {data.as_of}
               </p>
             )}
           </div>

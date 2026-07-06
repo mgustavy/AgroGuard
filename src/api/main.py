@@ -9,6 +9,11 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+try:
+    from . import weather
+except ImportError:  # allows running as `uvicorn main:app` from src/api
+    import weather
+
 app = FastAPI(
     title="AgroGuard API",
     description="Weather-driven crop disease early warning system for East African smallholder farmers.",
@@ -235,6 +240,49 @@ def get_district_risk(
         recommendation=RECOMMENDATIONS[risk_level][crop],
         features=DistrictFeatures(**record["features"]),
         model_version="xgboost-v0.2 (precomputed from real ERA5 data)",
+    )
+
+
+def probability_from_features(features: dict) -> float:
+    """Score a feature dict with the trained model, honouring the feature order."""
+    row = np.array([[features[name] for name in FEATURE_ORDER]], dtype=float)
+    return float(MODEL.predict_proba(row)[0, 1])
+
+
+@app.get("/risk/live/{district}", response_model=DistrictRiskResponse, tags=["Predictions"])
+def get_live_risk(
+    district: str,
+    crop: Literal["maize", "beans", "potato", "banana"] = "maize",
+):
+    """
+    Fetch recent Open-Meteo weather for a district, engineer the four features,
+    and score them with the trained model. Requires the model file to be present.
+    """
+    coords = weather.DISTRICT_COORDS.get(district)
+    if coords is None:
+        raise HTTPException(status_code=404, detail=f"Unknown district '{district}'")
+    if MODEL is None:
+        raise HTTPException(status_code=503,
+                            detail="Model not loaded; live scoring is unavailable.")
+    try:
+        daily = weather.fetch_recent_daily(coords["lat"], coords["lon"])
+        latest = weather.latest_features(daily)
+    except RuntimeError as error:
+        raise HTTPException(status_code=502, detail=str(error))
+
+    features = latest["features"]
+    probability = probability_from_features(features)
+    risk_level = band_probability(probability)
+    return DistrictRiskResponse(
+        district=district,
+        country=coords["country"],
+        crop=crop,
+        as_of=latest["as_of"],
+        risk_level=risk_level,
+        probability=round(probability, 2),
+        recommendation=RECOMMENDATIONS[risk_level][crop],
+        features=DistrictFeatures(**features),
+        model_version="xgboost-v0.2 (live Open-Meteo weather)",
     )
 
 

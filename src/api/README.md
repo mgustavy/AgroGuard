@@ -8,7 +8,8 @@ the Sprint 1 notebook, on real Open-Meteo ERA5 weather.
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/` | Health check; reports whether the model and district snapshot are loaded |
-| GET | `/risk/{district}?crop=maize` | Latest precomputed risk for a district (used by the dashboard) |
+| GET | `/risk/live/{district}?crop=maize` | Live scoring: fetch recent weather, engineer features, run the model (needs the model file) |
+| GET | `/risk/{district}?crop=maize` | Latest precomputed risk for a district (no model file needed) |
 | POST | `/risk` | Score an arbitrary set of the four features |
 | GET | `/districts`, `/crops` | Reference lists |
 
