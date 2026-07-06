@@ -12,7 +12,10 @@ User=agroguard
 Group=agroguard
 WorkingDirectory=/opt/agroguard/AgroGuard
 Environment="AGROGUARD_MODEL_PATH=/opt/agroguard/AgroGuard/models/xgb_risk_model.joblib"
-Environment="AGROGUARD_CORS_ORIGINS=*"
+# Lock the API to your own site origin (scheme + host, no trailing slash), e.g.
+# https://agroguard.example.com or http://203.0.113.10. The dashboard is same-origin
+# via the nginx /api proxy, so this only blocks other sites from scripting the API.
+Environment="AGROGUARD_CORS_ORIGINS=http://YOUR_DOMAIN_OR_IP"
 # Bind to localhost only; nginx is the public entry point.
 # Use --workers 1 on a 1 GB VM; 2 is comfortable on 2 GB.
 ExecStart=/opt/agroguard/AgroGuard/.venv/bin/uvicorn src.api.main:app --host 127.0.0.1 --port 8000 --workers 2

@@ -149,6 +149,14 @@ class ForecastResponse(BaseModel):
     model_version: str
 
 
+class AlertItem(BaseModel):
+    district: str
+    country: str
+    risk_level: Literal["HIGH", "MEDIUM", "LOW"]
+    probability: float
+    as_of: str
+
+
 def band_probability(prob: float) -> str:
     """Map a HIGH-risk probability to the three API risk levels."""
     for threshold, level in RISK_BANDS:
@@ -334,6 +342,26 @@ def get_forecast(district: str, days: int = 14):
         series=series,
         model_version="xgboost-v0.2 (live Open-Meteo forecast)",
     )
+
+
+@app.get("/alerts", response_model=list[AlertItem], tags=["Predictions"])
+def get_alerts():
+    """
+    Current risk for every district, from the precomputed snapshot, sorted with
+    the highest risk first. Powers the dashboard Alerts view.
+    """
+    order = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
+    items = [
+        AlertItem(
+            district=r["district"],
+            country=r["country"],
+            risk_level=r["risk_level"],
+            probability=r["probability"],
+            as_of=r["as_of"],
+        )
+        for r in RISK_SNAPSHOT.values()
+    ]
+    return sorted(items, key=lambda a: (order[a.risk_level], -a.probability))
 
 
 @app.get("/districts", tags=["Reference"])

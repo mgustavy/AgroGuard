@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import SignIn from '@/pages/SignIn'
 import SignUp from '@/pages/SignUp'
 import Dashboard from '@/pages/Dashboard'
+import Alerts from '@/pages/Alerts'
+import SettingsPage from '@/pages/Settings'
 import { useAuth } from '@/context/AuthContext'
 
 function ProtectedRoute({ children }) {
@@ -22,6 +24,22 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/alerts"
+          element={
+            <ProtectedRoute>
+              <Alerts />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
             </ProtectedRoute>
           }
         />

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Droplets, Thermometer, Wind, BarChart2 } from 'lucide-react'
-import Sidebar from '@/components/Sidebar'
+import AppLayout from '@/components/AppLayout'
 import RiskCard from '@/components/RiskCard'
 import StatCard from '@/components/StatCard'
 import ForecastChart from '@/components/ForecastChart'
@@ -12,8 +12,9 @@ import {
   SelectItem,
 } from '@/components/ui/select'
 import { fetchDistrictRisk, fetchForecast } from '@/lib/api'
+import { useAuth } from '@/context/AuthContext'
+import { DISTRICTS } from '@/lib/districts'
 
-const DISTRICTS = ['Huye', 'Arusha', 'Nakuru', 'Mbarara']
 const CROPS = ['Maize', 'Beans', 'Potato', 'Banana']
 
 function Picker({ value, onValueChange, options }) {
@@ -38,13 +39,22 @@ function signed(value) {
 }
 
 export default function Dashboard() {
-  const [district, setDistrict] = useState('Arusha')
+  const { profile } = useAuth()
+  const [district, setDistrict] = useState('')
   const [crop, setCrop] = useState('Maize')
   const [data, setData] = useState(null)
   const [forecast, setForecast] = useState(null)
   const [error, setError] = useState(null)
 
+  // Default to the officer's registered district once their profile loads.
   useEffect(() => {
+    if (district) return
+    if (profile?.districts?.length) setDistrict(profile.districts[0])
+    else if (profile) setDistrict('Arusha')
+  }, [profile, district])
+
+  useEffect(() => {
+    if (!district) return
     let active = true
     setError(null)
     fetchDistrictRisk(district, crop)
@@ -61,6 +71,7 @@ export default function Dashboard() {
   }, [district, crop])
 
   useEffect(() => {
+    if (!district) return
     let active = true
     fetchForecast(district)
       .then((result) => active && setForecast(result))
@@ -73,71 +84,65 @@ export default function Dashboard() {
   const features = data?.features
 
   return (
-    <div className="min-h-screen bg-background">
-      <Sidebar />
-      <main className="ml-60 p-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-primary">Risk Overview</h1>
-            {data && (
-              <p className="mt-1 text-sm text-secondary">
-                {data.district}, {data.country} &middot;{' '}
-                {data.live ? 'live weather' : 'snapshot'} &middot; {data.as_of}
-              </p>
-            )}
-          </div>
-          <div className="flex gap-3">
-            <Picker value={district} onValueChange={setDistrict} options={DISTRICTS} />
-            <Picker value={crop} onValueChange={setCrop} options={CROPS} />
-          </div>
+    <AppLayout>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-primary">Risk Overview</h1>
+          {data && (
+            <p className="mt-1 text-sm text-secondary">
+              {data.district}, {data.country} &middot;{' '}
+              {data.live ? 'live weather' : 'snapshot'} &middot; {data.as_of}
+            </p>
+          )}
         </div>
+        <div className="flex gap-3">
+          <Picker value={district} onValueChange={setDistrict} options={DISTRICTS} />
+          <Picker value={crop} onValueChange={setCrop} options={CROPS} />
+        </div>
+      </div>
 
-        {error && (
-          <div className="mt-8 rounded border border-border bg-surface p-4 text-sm text-secondary">
-            Could not reach the API ({error}). Start it with{' '}
-            <span className="text-primary">uvicorn src.api.main:app</span>.
-          </div>
-        )}
+      {error && (
+        <div className="mt-8 rounded border border-border bg-surface p-4 text-sm text-secondary">Could not reach the API ({error}).</div>
+      )}
 
-        <div className="mt-8 space-y-6">
-          <RiskCard
-            level={data ? data.risk_level : 'LOW'}
-            probability={data ? Math.round(data.probability * 100) : 0}
-            recommendation={data ? data.recommendation : 'Loading district risk...'}
+      <div className="mt-8 space-y-6">
+        <RiskCard
+          level={data ? data.risk_level : 'LOW'}
+          probability={data ? Math.round(data.probability * 100) : 0}
+          recommendation={data ? data.recommendation : 'Loading district risk...'}
+        />
+
+        <div className="grid grid-cols-3 gap-6">
+          <StatCard
+            icon={Droplets}
+            label="Consecutive Wet Days"
+            value={features ? `${features.consecutive_wet_days} days` : '-'}
+            accent
           />
-
-          <div className="grid grid-cols-3 gap-6">
-            <StatCard
-              icon={Droplets}
-              label="Consecutive Wet Days"
-              value={features ? `${features.consecutive_wet_days} days` : '-'}
-              accent
-            />
-            <StatCard
-              icon={Thermometer}
-              label="Temperature Spread"
-              value={features ? `${features.temp_spread_7d}°C` : '-'}
-            />
-            <StatCard
-              icon={Wind}
-              label="Humidity Deviation"
-              value={features ? signed(features.humidity_deviation) : '-'}
-            />
-          </div>
-
-          <div className="rounded border border-border bg-surface p-6">
-            <h2 className="text-base font-semibold text-primary">14-Day Forecast</h2>
-            {forecast ? (
-              <ForecastChart series={forecast.series} />
-            ) : (
-              <div className="mt-4 flex h-[200px] flex-col items-center justify-center rounded border border-border bg-elevated">
-                <BarChart2 className="h-8 w-8 text-secondary" />
-                <span className="mt-2 text-sm text-secondary">Forecast unavailable</span>
-              </div>
-            )}
-          </div>
+          <StatCard
+            icon={Thermometer}
+            label="Temperature Spread"
+            value={features ? `${features.temp_spread_7d}°C` : '-'}
+          />
+          <StatCard
+            icon={Wind}
+            label="Humidity Deviation"
+            value={features ? signed(features.humidity_deviation) : '-'}
+          />
         </div>
-      </main>
-    </div>
+
+        <div className="rounded border border-border bg-surface p-6">
+          <h2 className="text-base font-semibold text-primary">14-Day Forecast</h2>
+          {forecast ? (
+            <ForecastChart series={forecast.series} />
+          ) : (
+            <div className="mt-4 flex h-[200px] flex-col items-center justify-center rounded border border-border bg-elevated">
+              <BarChart2 className="h-8 w-8 text-secondary" />
+              <span className="mt-2 text-sm text-secondary">Forecast unavailable</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </AppLayout>
   )
 }
