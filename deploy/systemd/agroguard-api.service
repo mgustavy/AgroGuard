@@ -1,0 +1,23 @@
+# AgroGuard FastAPI service (uvicorn behind nginx).
+# Install: sudo cp deploy/systemd/agroguard-api.service /etc/systemd/system/
+# then: sudo systemctl daemon-reload && sudo systemctl enable --now agroguard-api
+# Adjust User and paths if you deploy somewhere other than /opt/agroguard.
+
+[Unit]
+Description=AgroGuard FastAPI service
+After=network.target
+
+[Service]
+User=agroguard
+Group=agroguard
+WorkingDirectory=/opt/agroguard/AgroGuard
+Environment="AGROGUARD_MODEL_PATH=/opt/agroguard/AgroGuard/models/xgb_risk_model.joblib"
+Environment="AGROGUARD_CORS_ORIGINS=*"
+# Bind to localhost only; nginx is the public entry point.
+# Use --workers 1 on a 1 GB VM; 2 is comfortable on 2 GB.
+ExecStart=/opt/agroguard/AgroGuard/.venv/bin/uvicorn src.api.main:app --host 127.0.0.1 --port 8000 --workers 2
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
