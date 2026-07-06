@@ -1,14 +1,13 @@
-import { Map, Wheat, AlertTriangle, Settings, LogOut } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { Map, AlertTriangle, Settings, LogOut } from 'lucide-react'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import Wordmark from '@/components/Wordmark'
 import { signOut } from '@/lib/auth'
 import { useAuth } from '@/context/AuthContext'
 
 const NAV_ITEMS = [
-  { icon: Map, label: 'Districts', active: true },
-  { icon: Wheat, label: 'Crops' },
-  { icon: AlertTriangle, label: 'Alerts' },
-  { icon: Settings, label: 'Settings' },
+  { icon: Map, label: 'Districts', to: '/dashboard' },
+  { icon: AlertTriangle, label: 'Alerts', to: '/alerts' },
+  { icon: Settings, label: 'Settings', to: '/settings' },
 ]
 
 function initials(name) {
@@ -19,6 +18,7 @@ function initials(name) {
 
 export default function Sidebar() {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const { session, profile } = useAuth()
   const name = profile?.full_name || 'Field Officer'
   const email = session?.user?.email
@@ -35,17 +35,21 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 space-y-1 px-3">
-        {NAV_ITEMS.map(({ icon: Icon, label, active }) => (
-          <button
-            key={label}
-            className={`flex w-full items-center gap-3 rounded px-3 py-2 text-sm transition-opacity ${
-              active ? 'bg-elevated text-accent' : 'text-secondary hover:text-primary'
-            }`}
-          >
-            <Icon className="h-4 w-4" />
-            {label}
-          </button>
-        ))}
+        {NAV_ITEMS.map(({ icon: Icon, label, to }) => {
+          const active = pathname === to
+          return (
+            <Link
+              key={label}
+              to={to}
+              className={`flex w-full items-center gap-3 rounded px-3 py-2 text-sm transition-opacity ${
+                active ? 'bg-elevated text-accent' : 'text-secondary hover:text-primary'
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              {label}
+            </Link>
+          )
+        })}
       </nav>
 
       <div className="border-t border-border p-3">
