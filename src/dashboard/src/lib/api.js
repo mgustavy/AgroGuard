@@ -19,3 +19,7 @@ export async function fetchDistrictRisk(district, crop) {
     return { ...(await getJson(`/risk/${name}?crop=${cropParam}`)), live: false }
   }
 }
+
+export async function fetchForecast(district) {
+  return getJson(`/forecast/${encodeURIComponent(district)}`)
+}
