@@ -136,6 +136,19 @@ class DistrictRiskResponse(BaseModel):
     model_version: str
 
 
+class ForecastPoint(BaseModel):
+    date: str
+    probability: float
+    risk_level: Literal["HIGH", "MEDIUM", "LOW"]
+
+
+class ForecastResponse(BaseModel):
+    district: str
+    country: str
+    series: list[ForecastPoint]
+    model_version: str
+
+
 def band_probability(prob: float) -> str:
     """Map a HIGH-risk probability to the three API risk levels."""
     for threshold, level in RISK_BANDS:
@@ -265,7 +278,7 @@ def get_live_risk(
         raise HTTPException(status_code=503,
                             detail="Model not loaded; live scoring is unavailable.")
     try:
-        daily = weather.fetch_recent_daily(coords["lat"], coords["lon"])
+        daily = weather.fetch_daily(coords["lat"], coords["lon"])
         latest = weather.latest_features(daily)
     except RuntimeError as error:
         raise HTTPException(status_code=502, detail=str(error))
@@ -283,6 +296,43 @@ def get_live_risk(
         recommendation=RECOMMENDATIONS[risk_level][crop],
         features=DistrictFeatures(**features),
         model_version="xgboost-v0.2 (live Open-Meteo weather)",
+    )
+
+
+@app.get("/forecast/{district}", response_model=ForecastResponse, tags=["Predictions"])
+def get_forecast(district: str, days: int = 14):
+    """
+    Return a rolling risk forecast for the next `days` days, scoring each day's
+    engineered features (built from recent plus forecast weather) with the model.
+    """
+    coords = weather.DISTRICT_COORDS.get(district)
+    if coords is None:
+        raise HTTPException(status_code=404, detail=f"Unknown district '{district}'")
+    if MODEL is None:
+        raise HTTPException(status_code=503,
+                            detail="Model not loaded; forecast is unavailable.")
+    try:
+        daily = weather.fetch_daily(coords["lat"], coords["lon"],
+                                    past_days=14, forecast_days=days)
+        engineered = weather.engineer_features(daily).tail(days)
+    except RuntimeError as error:
+        raise HTTPException(status_code=502, detail=str(error))
+
+    rows = np.array(engineered[FEATURE_ORDER].values, dtype=float)
+    probabilities = MODEL.predict_proba(rows)[:, 1]
+    series = [
+        ForecastPoint(
+            date=day.date().isoformat(),
+            probability=round(float(prob), 2),
+            risk_level=band_probability(prob),
+        )
+        for day, prob in zip(engineered["date"], probabilities)
+    ]
+    return ForecastResponse(
+        district=district,
+        country=coords["country"],
+        series=series,
+        model_version="xgboost-v0.2 (live Open-Meteo forecast)",
     )
 
 
