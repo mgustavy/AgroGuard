@@ -1,16 +1,27 @@
+import json
 import os
 from pathlib import Path
 from typing import Literal, Optional
 
 import joblib
 import numpy as np
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 app = FastAPI(
     title="AgroGuard API",
     description="Weather-driven crop disease early warning system for East African smallholder farmers.",
     version="0.2.0",
+)
+
+# Allow the dashboard and other browser clients to call the API in development.
+CORS_ORIGINS = os.environ.get("AGROGUARD_CORS_ORIGINS", "*").split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=CORS_ORIGINS,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 CROPS = ["maize", "beans", "potato", "banana"]
@@ -65,7 +76,22 @@ def load_model() -> tuple[Optional[object], list]:
     return bundle, DEFAULT_FEATURES
 
 
+def load_risk_snapshot() -> dict:
+    """
+    Load the precomputed per-district risk snapshot exported from the notebook
+    (latest scored day per district, on real ERA5 data). Path comes from
+    AGROGUARD_RISK_DATA, defaulting to data/district_risk.json next to this file.
+    """
+    default_path = Path(__file__).resolve().parent / "data" / "district_risk.json"
+    path = os.environ.get("AGROGUARD_RISK_DATA", str(default_path))
+    if not os.path.exists(path):
+        return {}
+    with open(path) as handle:
+        return json.load(handle).get("districts", {})
+
+
 MODEL, FEATURE_ORDER = load_model()
+RISK_SNAPSHOT = load_risk_snapshot()
 
 
 class RiskRequest(BaseModel):
@@ -83,6 +109,25 @@ class RiskResponse(BaseModel):
     risk_level: Literal["HIGH", "MEDIUM", "LOW"]
     probability: float
     recommendation: str
+    model_version: str
+
+
+class DistrictFeatures(BaseModel):
+    consecutive_wet_days: int
+    temp_spread_7d: float
+    humidity_deviation: float
+    rainfall_7d_total: float
+
+
+class DistrictRiskResponse(BaseModel):
+    district: str
+    country: str
+    crop: str
+    as_of: str
+    risk_level: Literal["HIGH", "MEDIUM", "LOW"]
+    probability: float
+    recommendation: str
+    features: DistrictFeatures
     model_version: str
 
 
@@ -136,6 +181,7 @@ def health_check():
         "service": "AgroGuard API",
         "version": "0.2.0",
         "model_loaded": MODEL is not None,
+        "districts_loaded": len(RISK_SNAPSHOT),
         "features": FEATURE_ORDER,
     }
 
@@ -161,6 +207,34 @@ def get_risk(request: RiskRequest):
         probability=round(probability, 2),
         recommendation=RECOMMENDATIONS[risk_level][request.crop],
         model_version=model_version,
+    )
+
+
+@app.get("/risk/{district}", response_model=DistrictRiskResponse, tags=["Predictions"])
+def get_district_risk(
+    district: str,
+    crop: Literal["maize", "beans", "potato", "banana"] = "maize",
+):
+    """
+    Return the latest precomputed disease risk for a district, scored by the
+    trained model on real ERA5 weather. The crop selects the recommendation text
+    but does not change the risk level, which is weather-driven.
+    """
+    record = RISK_SNAPSHOT.get(district)
+    if record is None:
+        raise HTTPException(status_code=404,
+                            detail=f"No risk data for district '{district}'")
+    risk_level = record["risk_level"]
+    return DistrictRiskResponse(
+        district=record["district"],
+        country=record["country"],
+        crop=crop,
+        as_of=record["as_of"],
+        risk_level=risk_level,
+        probability=record["probability"],
+        recommendation=RECOMMENDATIONS[risk_level][crop],
+        features=DistrictFeatures(**record["features"]),
+        model_version="xgboost-v0.2 (precomputed from real ERA5 data)",
     )
 
 

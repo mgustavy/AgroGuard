@@ -1,0 +1,266 @@
+{
+  "source": "Open-Meteo ERA5 archive",
+  "generated_from": "sprint1_features.csv",
+  "districts": {
+    "Jinja": {
+      "district": "Jinja",
+      "country": "Uganda",
+      "as_of": "2023-12-31",
+      "risk_level": "MEDIUM",
+      "probability": 0.57,
+      "features": {
+        "consecutive_wet_days": 2,
+        "temp_spread_7d": 6.0,
+        "humidity_deviation": 6.1,
+        "rainfall_7d_total": 25.1
+      }
+    },
+    "Nakuru": {
+      "district": "Nakuru",
+      "country": "Kenya",
+      "as_of": "2023-12-31",
+      "risk_level": "MEDIUM",
+      "probability": 0.63,
+      "features": {
+        "consecutive_wet_days": 0,
+        "temp_spread_7d": 12.1,
+        "humidity_deviation": 2.9,
+        "rainfall_7d_total": 4.7
+      }
+    },
+    "Arusha": {
+      "district": "Arusha",
+      "country": "Tanzania",
+      "as_of": "2023-12-31",
+      "risk_level": "MEDIUM",
+      "probability": 0.6,
+      "features": {
+        "consecutive_wet_days": 10,
+        "temp_spread_7d": 10.1,
+        "humidity_deviation": 5.0,
+        "rainfall_7d_total": 59.9
+      }
+    },
+    "Bahir Dar": {
+      "district": "Bahir Dar",
+      "country": "Ethiopia",
+      "as_of": "2023-12-31",
+      "risk_level": "HIGH",
+      "probability": 0.86,
+      "features": {
+        "consecutive_wet_days": 0,
+        "temp_spread_7d": 12.3,
+        "humidity_deviation": 0.2,
+        "rainfall_7d_total": 0.0
+      }
+    },
+    "Dire Dawa": {
+      "district": "Dire Dawa",
+      "country": "Ethiopia",
+      "as_of": "2023-12-31",
+      "risk_level": "HIGH",
+      "probability": 0.83,
+      "features": {
+        "consecutive_wet_days": 0,
+        "temp_spread_7d": 11.6,
+        "humidity_deviation": 0.9,
+        "rainfall_7d_total": 0.0
+      }
+    },
+    "Dodoma": {
+      "district": "Dodoma",
+      "country": "Tanzania",
+      "as_of": "2023-12-31",
+      "risk_level": "HIGH",
+      "probability": 0.91,
+      "features": {
+        "consecutive_wet_days": 2,
+        "temp_spread_7d": 10.5,
+        "humidity_deviation": 13.9,
+        "rainfall_7d_total": 34.7
+      }
+    },
+    "Eldoret": {
+      "district": "Eldoret",
+      "country": "Kenya",
+      "as_of": "2023-12-31",
+      "risk_level": "HIGH",
+      "probability": 0.92,
+      "features": {
+        "consecutive_wet_days": 1,
+        "temp_spread_7d": 11.4,
+        "humidity_deviation": 8.9,
+        "rainfall_7d_total": 3.5
+      }
+    },
+    "Gulu": {
+      "district": "Gulu",
+      "country": "Uganda",
+      "as_of": "2023-12-31",
+      "risk_level": "HIGH",
+      "probability": 0.83,
+      "features": {
+        "consecutive_wet_days": 1,
+        "temp_spread_7d": 11.2,
+        "humidity_deviation": 13.6,
+        "rainfall_7d_total": 3.2
+      }
+    },
+    "Hawassa": {
+      "district": "Hawassa",
+      "country": "Ethiopia",
+      "as_of": "2023-12-31",
+      "risk_level": "HIGH",
+      "probability": 0.71,
+      "features": {
+        "consecutive_wet_days": 0,
+        "temp_spread_7d": 10.0,
+        "humidity_deviation": 1.8,
+        "rainfall_7d_total": 1.1
+      }
+    },
+    "Nyamagabe": {
+      "district": "Nyamagabe",
+      "country": "Rwanda",
+      "as_of": "2023-12-31",
+      "risk_level": "MEDIUM",
+      "probability": 0.39,
+      "features": {
+        "consecutive_wet_days": 8,
+        "temp_spread_7d": 8.0,
+        "humidity_deviation": 2.3,
+        "rainfall_7d_total": 54.9
+      }
+    },
+    "Huye": {
+      "district": "Huye",
+      "country": "Rwanda",
+      "as_of": "2023-12-31",
+      "risk_level": "MEDIUM",
+      "probability": 0.58,
+      "features": {
+        "consecutive_wet_days": 7,
+        "temp_spread_7d": 8.3,
+        "humidity_deviation": 3.6,
+        "rainfall_7d_total": 52.5
+      }
+    },
+    "Kisumu": {
+      "district": "Kisumu",
+      "country": "Kenya",
+      "as_of": "2023-12-31",
+      "risk_level": "HIGH",
+      "probability": 0.86,
+      "features": {
+        "consecutive_wet_days": 3,
+        "temp_spread_7d": 8.8,
+        "humidity_deviation": 7.3,
+        "rainfall_7d_total": 30.8
+      }
+    },
+    "Kitale": {
+      "district": "Kitale",
+      "country": "Kenya",
+      "as_of": "2023-12-31",
+      "risk_level": "HIGH",
+      "probability": 0.9,
+      "features": {
+        "consecutive_wet_days": 3,
+        "temp_spread_7d": 12.8,
+        "humidity_deviation": 8.6,
+        "rainfall_7d_total": 5.9
+      }
+    },
+    "Mbale": {
+      "district": "Mbale",
+      "country": "Uganda",
+      "as_of": "2023-12-31",
+      "risk_level": "HIGH",
+      "probability": 0.91,
+      "features": {
+        "consecutive_wet_days": 2,
+        "temp_spread_7d": 9.3,
+        "humidity_deviation": 12.1,
+        "rainfall_7d_total": 42.7
+      }
+    },
+    "Mbarara": {
+      "district": "Mbarara",
+      "country": "Uganda",
+      "as_of": "2023-12-31",
+      "risk_level": "MEDIUM",
+      "probability": 0.62,
+      "features": {
+        "consecutive_wet_days": 1,
+        "temp_spread_7d": 10.2,
+        "humidity_deviation": 1.8,
+        "rainfall_7d_total": 14.5
+      }
+    },
+    "Mbeya": {
+      "district": "Mbeya",
+      "country": "Tanzania",
+      "as_of": "2023-12-31",
+      "risk_level": "MEDIUM",
+      "probability": 0.54,
+      "features": {
+        "consecutive_wet_days": 1,
+        "temp_spread_7d": 7.2,
+        "humidity_deviation": 6.9,
+        "rainfall_7d_total": 48.5
+      }
+    },
+    "Morogoro": {
+      "district": "Morogoro",
+      "country": "Tanzania",
+      "as_of": "2023-12-31",
+      "risk_level": "LOW",
+      "probability": 0.3,
+      "features": {
+        "consecutive_wet_days": 1,
+        "temp_spread_7d": 9.8,
+        "humidity_deviation": -1.7,
+        "rainfall_7d_total": 19.0
+      }
+    },
+    "Musanze": {
+      "district": "Musanze",
+      "country": "Rwanda",
+      "as_of": "2023-12-31",
+      "risk_level": "MEDIUM",
+      "probability": 0.45,
+      "features": {
+        "consecutive_wet_days": 0,
+        "temp_spread_7d": 8.4,
+        "humidity_deviation": 2.2,
+        "rainfall_7d_total": 27.7
+      }
+    },
+    "Jimma": {
+      "district": "Jimma",
+      "country": "Ethiopia",
+      "as_of": "2023-12-31",
+      "risk_level": "HIGH",
+      "probability": 0.91,
+      "features": {
+        "consecutive_wet_days": 0,
+        "temp_spread_7d": 11.4,
+        "humidity_deviation": 7.8,
+        "rainfall_7d_total": 0.5
+      }
+    },
+    "Rwamagana": {
+      "district": "Rwamagana",
+      "country": "Rwanda",
+      "as_of": "2023-12-31",
+      "risk_level": "MEDIUM",
+      "probability": 0.44,
+      "features": {
+        "consecutive_wet_days": 2,
+        "temp_spread_7d": 8.7,
+        "humidity_deviation": 6.1,
+        "rainfall_7d_total": 32.8
+      }
+    }
+  }
+}
