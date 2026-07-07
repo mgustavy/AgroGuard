@@ -107,14 +107,26 @@ sudo ufw allow 'Nginx Full'
 
 ## 9. (Optional) HTTPS with a domain
 
-Point an A record at the VM IP, then:
+Point an A record at the VM IP. A free DuckDNS subdomain
+(`something.duckdns.org`) works too.
+
+Certbot's nginx installer matches the certificate to a server block **by name**,
+so set `server_name` to your domain first, then request the certificate:
 
 ```bash
+sudo sed -i 's/server_name _;/server_name YOUR_DOMAIN;/' /etc/nginx/sites-available/agroguard
+sudo nginx -t && sudo systemctl reload nginx
+
 sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d YOUR_DOMAIN
+sudo certbot --nginx -d YOUR_DOMAIN        # choose "redirect" when prompted
 ```
 
-Certbot edits the nginx config and sets up auto-renewal.
+Certbot adds the HTTPS server block and sets up auto-renewal. Then add
+`https://YOUR_DOMAIN` under Supabase -> Authentication -> URL Configuration.
+
+If you skip the `server_name` step, certbot obtains the certificate but reports
+"Could not find a matching server block"; fix `server_name` as above and run
+`sudo certbot install --cert-name YOUR_DOMAIN`.
 
 ## Supabase notes
 
