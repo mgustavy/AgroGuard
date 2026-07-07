@@ -133,6 +133,7 @@ export default function Dashboard() {
 
         <div className="rounded border border-border bg-surface p-6">
           <h2 className="text-base font-semibold text-primary">14-Day Forecast</h2>
+          <p className="mt-1 text-xs text-secondary">Modelled disease risk from forecast weather, not a rain forecast. A relative screening signal, less certain further out.</p>
           {forecast ? (
             <ForecastChart series={forecast.series} />
           ) : (
