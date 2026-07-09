@@ -1,12 +1,23 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import AppLayout from '@/components/AppLayout'
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select'
 import { fetchAlerts } from '@/lib/api'
+import { useAuth } from '@/context/AuthContext'
 
 const RISK_COLORS = { HIGH: '#ef4444', MEDIUM: '#f59e0b', LOW: '#22c55e' }
+const ALL = 'All districts'
 
 export default function Alerts() {
+  const { profile } = useAuth()
   const [alerts, setAlerts] = useState(null)
   const [error, setError] = useState(null)
+  const [country, setCountry] = useState('')
 
   useEffect(() => {
     fetchAlerts()
@@ -14,15 +25,45 @@ export default function Alerts() {
       .catch((err) => setError(err.message))
   }, [])
 
-  const highCount = alerts?.filter((a) => a.risk_level === 'HIGH').length ?? 0
+  const countries = useMemo(
+    () => (alerts ? [ALL, ...[...new Set(alerts.map((a) => a.country))].sort()] : [ALL]),
+    [alerts],
+  )
+
+  // The officer's own country, derived from their district (once both are loaded).
+  const homeCountry = useMemo(() => {
+    if (!alerts || !profile?.districts?.length) return null
+    return alerts.find((a) => a.district === profile.districts[0])?.country || null
+  }, [alerts, profile])
+
+  // Show the officer's country by default; their explicit pick overrides it.
+  const effectiveCountry = country || homeCountry || ALL
+  const visible = alerts?.filter((a) => effectiveCountry === ALL || a.country === effectiveCountry) ?? []
+  const highCount = visible.filter((a) => a.risk_level === 'HIGH').length
 
   return (
     <AppLayout>
-      <h1 className="text-xl font-semibold text-primary">Alerts</h1>
-      <p className="mt-1 text-sm text-secondary">
-        Districts ranked by current disease risk.
-        {alerts ? ` ${highCount} at HIGH risk.` : ''}
-      </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-primary">Alerts</h1>
+          <p className="mt-1 text-sm text-secondary">
+            Districts ranked by current disease risk.
+            {alerts ? ` ${highCount} at HIGH risk.` : ''}
+          </p>
+        </div>
+        {alerts && (
+          <Select value={effectiveCountry} onValueChange={setCountry}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {countries.map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </div>
 
       {error && (
         <div className="mt-8 rounded border border-border bg-surface p-4 text-sm text-secondary">
@@ -34,31 +75,37 @@ export default function Alerts() {
 
       {alerts && (
         <div className="mt-8 divide-y divide-border rounded border border-border bg-surface">
-          {alerts.map((a) => (
-            <div key={a.district} className="flex items-center justify-between px-5 py-3">
-              <div className="flex items-center gap-3">
-                <span
-                  className="h-2 w-2 rounded-sm"
-                  style={{ backgroundColor: RISK_COLORS[a.risk_level] }}
-                />
-                <div>
-                  <div className="text-sm text-primary">{a.district}</div>
-                  <div className="text-xs text-secondary">{a.country}</div>
+          {visible.map((a) => {
+            const mine = a.district === profile?.districts?.[0]
+            return (
+              <div key={a.district} className="flex items-center justify-between px-5 py-3">
+                <div className="flex items-center gap-3">
+                  <span
+                    className="h-2 w-2 rounded-sm"
+                    style={{ backgroundColor: RISK_COLORS[a.risk_level] }}
+                  />
+                  <div>
+                    <div className="text-sm text-primary">
+                      {a.district}
+                      {mine && <span className="ml-2 text-xs text-accent">your district</span>}
+                    </div>
+                    <div className="text-xs text-secondary">{a.country}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-6">
+                  <span
+                    className="text-sm font-medium"
+                    style={{ color: RISK_COLORS[a.risk_level] }}
+                  >
+                    {a.risk_level}
+                  </span>
+                  <span className="w-12 text-right text-sm text-secondary">
+                    {Math.round(a.probability * 100)}%
+                  </span>
                 </div>
               </div>
-              <div className="flex items-center gap-6">
-                <span
-                  className="text-sm font-medium"
-                  style={{ color: RISK_COLORS[a.risk_level] }}
-                >
-                  {a.risk_level}
-                </span>
-                <span className="w-12 text-right text-sm text-secondary">
-                  {Math.round(a.probability * 100)}%
-                </span>
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </AppLayout>
