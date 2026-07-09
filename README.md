@@ -3,7 +3,7 @@
 A weather-driven crop disease early-warning system for East African smallholder farmers. AgroGuard turns daily weather into district-level disease-risk signals up to 14 days ahead, so cooperative field officers can act before an outbreak spreads.
 
 - **Live app:** https://agroguard.duckdns.org
-- **Demo video (5 min):** _add your Canvas/video link here_
+- **Demo video (5 min):** https://shorturl.at/8hzPz
 - **Repository:** https://github.com/mgustavy/AgroGuard
 
 ---
