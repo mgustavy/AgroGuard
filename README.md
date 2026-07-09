@@ -1,76 +1,95 @@
 # AgroGuard
 
-A weather-driven crop disease early warning system for East African smallholder farmers.
+A weather-driven crop disease early-warning system for East African smallholder farmers. AgroGuard turns daily weather into district-level disease-risk signals up to 14 days ahead, so cooperative field officers can act before an outbreak spreads.
 
-Most crop disease tools need a sick plant before they can help. AgroGuard does not. It uses historical weather patterns to predict district-level disease risk 14 days before symptoms appear, giving cooperative field officers time to act before an outbreak takes hold.
-
-## Github Repository
-
-[Link to Github Repository](https://github.com/mgustavy/AgroGuard)
-
-## Demo
-
-[Watch the demo](https://shorturl.at/EblvW)
-
+- **Live app:** https://agroguard.duckdns.org
+- **Demo video (5 min):** _add your Canvas/video link here_
+- **Repository:** https://github.com/mgustavy/AgroGuard
 
 ---
 
-## The Problem
+## The problem
 
-Crop disease destroys up to 40% of yields for East African smallholders every season. Most of that damage happens before anyone knows something is wrong. By the time a farmer notices diseased leaves, the outbreak has been spreading for days and the window for cheap, effective treatment is already closing.
+Crop disease destroys up to 40% of smallholder yields every season, and most of that damage happens before anyone sees a symptom. By the time a farmer notices diseased leaves, the outbreak has been spreading for days. AgroGuard flags disease-favourable conditions early, from weather alone, so field officers get a head start.
 
-## What It Does
+## Core functionality
 
-Takes weather forecast data for any East African district, runs it through a trained ML model, and returns a risk score: HIGH, MEDIUM, or LOW. A rule-based layer translates that score into a disease-specific recommendation. Cooperative field officers see this on a dashboard before their farm visits. Farmers get a plain-language summary.
+- **Risk Overview.** For a chosen district and crop, a HIGH / MEDIUM / LOW disease-risk level with a probability score, driven by current weather, plus a crop-specific recommendation.
+- **Live weather scoring.** Pulls current Open-Meteo weather for the district, engineers four features, and scores them with a trained XGBoost model.
+- **14-day forecast.** A rolling risk outlook for the next two weeks, one bar per day, coloured by risk level.
+- **Alerts.** Every district ranked by current risk, highest first, so an officer sees where to act.
+- **Field-officer accounts.** Registration and login (Supabase), with each officer tied to their cooperative and district; the dashboard opens on their own district.
 
-## Stack
+## Tech stack
 
 | Layer | Tools |
 |---|---|
-| Language | Python 3.11 |
-| Data | Open-Meteo API, CHIRPS, ERA5, Mendeley Data |
-| ML | scikit-learn, XGBoost, TensorFlow/Keras, SHAP |
-| API | FastAPI, PostgreSQL, SQLAlchemy |
-| Frontend | React 18, Tailwind CSS |
-| Hosting | Strettch Cloud |
+| Data and ML | Python, pandas, scikit-learn, XGBoost, Open-Meteo ERA5 |
+| API | FastAPI, uvicorn |
+| Frontend | React 18, Vite, Tailwind CSS, shadcn/ui |
+| Auth and database | Supabase (Postgres) |
+| Hosting | Ubuntu VM (Strettch Cloud), nginx, Let's Encrypt HTTPS |
 
-## Project Structure
+## Repository structure
 
 ```
-agroguard/
-├── notebooks/
-│   └── sprint1_data_pipeline.ipynb   # Sprint 1: data collection + feature engineering
-├── src/
-│   ├── ingestion/                     # Weather data pipeline
-│   ├── features/                      # Feature engineering
-│   ├── models/                        # XGBoost, LSTM, logistic regression
-│   ├── api/                           # FastAPI backend
-│   └── dashboard/                     # React frontend
-├── .gitignore
-└── README.md
+notebooks/data_pipeline.ipynb   Data pipeline: fetch weather, engineer features, label, train, evaluate
+src/api/                        FastAPI service (risk, live, forecast, alerts) plus the trained model
+src/dashboard/                  React dashboard (sign in, risk overview, alerts, settings)
+supabase/migrations/            Postgres profiles table and the sign-up trigger
+deploy/                         nginx config, systemd unit, and the deployment runbook
+models/xgb_risk_model.joblib    Trained XGBoost model
 ```
 
-## Getting Started
+## Run it locally
 
-The notebook is designed to run in Google Colab.
+Prerequisites: Python 3.9+, Node 18+, and a free [Supabase](https://supabase.com) project (for accounts).
 
-1. Open `notebooks/sprint1_data_pipeline.ipynb` in Colab
-2. Run all cells — it will mount your Google Drive and load from cache if available
-3. On first run it fetches weather data for 20 districts and saves it to `MyDrive/AgroGuard/`
+### 1. API
 
+```bash
+cd src/api
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+```
 
-## Data
+Open http://localhost:8000/docs for the interactive API docs. `model_loaded: true` on the health check (`GET /`) confirms the model loaded.
 
-- **Districts:** 20 across Rwanda, Kenya, Uganda, Tanzania, and Ethiopia
-- **Date range:** 2021–2023 (~21,900 rows)
-- **Engineered features:** consecutive wet days, 7-day temperature spread, humidity deviation
-- **Disease labels:** Mduma & Mayo (2024) via Mendeley Data (Sprint 1 alignment in progress)
+### 2. Dashboard
 
+```bash
+cd src/dashboard
+npm install
+cp .env.example .env     # fill in your Supabase URL and anon key; keep VITE_API_URL=http://localhost:8000
+npm run dev
+```
 
-## Three Core Features
+Open the URL Vite prints (for example http://localhost:5173).
 
-**Consecutive wet days** — counts how many days in a row had more than 1mm of rainfall. Sustained moisture is the primary driver of fungal spore germination.
+### 3. Supabase (one-time)
 
-**7-day temperature spread** — rolling average of the gap between daily max and min temperature. Wide diurnal swings stress plant defences.
+1. Create a project and copy the **Project URL** and **anon key** into `src/dashboard/.env`.
+2. In the SQL editor, run `supabase/migrations/0001_profiles.sql`.
+3. Authentication -> Providers -> Email: turn **Confirm email OFF** so accounts log in immediately.
 
-**Humidity deviation** — how far overnight humidity sits above or below the 7-day mean. Elevated overnight humidity is what activates most fungal pathogens in the region.
+### Deploy to a server
+
+The full production runbook (nginx, systemd, HTTPS with certbot) is in [`deploy/README.md`](deploy/README.md).
+
+## Data pipeline and model
+
+`notebooks/data_pipeline.ipynb` pulls real ERA5 weather for 20 East African districts (2021-2023) from Open-Meteo, engineers four features (consecutive wet days, 7-day temperature spread, humidity deviation, 7-day rainfall total), derives disease-risk labels from the Mduma and Mayo (2024) Tanzania maize dataset, and trains an XGBoost classifier evaluated with stratified 5-fold cross-validation. Run it in Google Colab (Run all) or locally with Jupyter. Set `USE_SYNTHETIC = True` for an offline demo run.
+
+## Testing
+
+- **Functional / manual:** the deployed app exercised end to end (register, log in, risk overview, alerts, forecast).
+- **API:** interactive testing through FastAPI's `/docs` (Swagger UI).
+- **Different data values:** switching district and crop changes the model inputs and outputs (a dry district reads LOW; a wet, humid one reads HIGH).
+- **Model evaluation:** stratified 5-fold cross-validation and leave-one-district-out transfer testing in the notebook.
+- **Different environments:** responsive dark UI verified across desktop and mobile widths, running on a 2 GB Ubuntu VM.
+
+## Limitations and future work
+
+- Disease labels are weakly derived (no ground-truth field data), so risk levels are relative screening signals of disease-favourable weather, not calibrated outbreak probabilities.
+- The model is trained on three Tanzanian districts and generalised to the rest, a documented scope constraint.
+- Next steps: ground the labels in a published agro-meteorological infection model, calibrate the output, and add a field-officer feedback loop to collect real ground-truth over time.
