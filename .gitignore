@@ -22,3 +22,6 @@ raw_era5/
 
 # OS
 .DS_Store
+
+# Claude Code local config
+.claude/
