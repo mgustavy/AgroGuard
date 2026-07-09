@@ -92,4 +92,3 @@ The full production runbook (nginx, systemd, HTTPS with certbot) is in [`deploy/
 
 - Disease labels are weakly derived (no ground-truth field data), so risk levels are relative screening signals of disease-favourable weather, not calibrated outbreak probabilities.
 - The model is trained on three Tanzanian districts and generalised to the rest, a documented scope constraint.
-- Next steps: ground the labels in a published agro-meteorological infection model, calibrate the output, and add a field-officer feedback loop to collect real ground-truth over time.
