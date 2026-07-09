@@ -16,16 +16,14 @@ import Wordmark from '@/components/Wordmark'
 import PasswordStrength from '@/components/PasswordStrength'
 import { signUp } from '@/lib/auth'
 import { DISTRICTS } from '@/lib/districts'
+import { useLang } from '@/context/LanguageContext'
 
 export default function SignUp() {
   const navigate = useNavigate()
+  const { t } = useLang()
   const [showPassword, setShowPassword] = useState(false)
   const [form, setForm] = useState({
-    fullName: '',
-    email: '',
-    password: '',
-    cooperative: '',
-    district: '',
+    fullName: '', email: '', password: '', cooperative: '', district: '',
   })
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
@@ -40,7 +38,7 @@ export default function SignUp() {
       await signUp(form)
       navigate('/dashboard')
     } catch (err) {
-      setError(err.message || 'Could not create your account.')
+      setError(err.message || t('auth.createError'))
       setSubmitting(false)
     }
   }
@@ -48,33 +46,33 @@ export default function SignUp() {
   return (
     <AuthLayout>
       <Wordmark className="text-base" />
-      <p className="mb-6 mt-1 text-sm text-secondary">Create your account</p>
+      <p className="mb-6 mt-1 text-sm text-secondary">{t('auth.signUpSubtitle')}</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="name">Full name</Label>
+          <Label htmlFor="name">{t('auth.fullName')}</Label>
           <Input id="name" value={form.fullName} onChange={set('fullName')}
             placeholder="Jane Mukamana" required />
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t('auth.email')}</Label>
           <Input id="email" type="email" value={form.email} onChange={set('email')}
             placeholder="you@example.com" required />
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="cooperative">Cooperative</Label>
+          <Label htmlFor="cooperative">{t('auth.cooperative')}</Label>
           <Input id="cooperative" value={form.cooperative} onChange={set('cooperative')}
             placeholder="Huye Coffee Cooperative" required />
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="district">District</Label>
+          <Label htmlFor="district">{t('auth.district')}</Label>
           <Select value={form.district}
             onValueChange={(value) => setForm({ ...form, district: value })}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select a district" />
+              <SelectValue placeholder={t('auth.selectDistrict')} />
             </SelectTrigger>
             <SelectContent>
               {DISTRICTS.map((name) => (
@@ -85,7 +83,7 @@ export default function SignUp() {
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">{t('auth.password')}</Label>
           <div className="relative">
             <Input id="password" type={showPassword ? 'text' : 'password'}
               value={form.password} onChange={set('password')} className="pr-10" required />
@@ -102,13 +100,15 @@ export default function SignUp() {
 
         <Button type="submit" disabled={submitting || !form.district}
           className="w-full bg-accent text-black">
-          {submitting ? 'Creating account...' : 'Create account'}
+          {submitting ? t('auth.creating') : t('auth.createBtn')}
         </Button>
       </form>
 
       <p className="mt-6 text-sm text-secondary">
-        Already have an account?{' '}
-        <Link to="/signin" className="transition-opacity hover:text-accent">Sign in</Link>
+        {t('auth.haveAccount')}{' '}
+        <Link to="/signin" className="transition-opacity hover:text-accent">
+          {t('auth.signInLink')}
+        </Link>
       </p>
     </AuthLayout>
   )

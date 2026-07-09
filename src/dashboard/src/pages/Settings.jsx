@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import AppLayout from '@/components/AppLayout'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/context/AuthContext'
+import { useLang } from '@/context/LanguageContext'
 import { signOut } from '@/lib/auth'
 
 function Row({ label, value }) {
@@ -16,6 +17,7 @@ function Row({ label, value }) {
 export default function Settings() {
   const navigate = useNavigate()
   const { session, profile } = useAuth()
+  const { t } = useLang()
 
   async function handleSignOut() {
     await signOut()
@@ -24,18 +26,18 @@ export default function Settings() {
 
   return (
     <AppLayout>
-      <h1 className="text-xl font-semibold text-primary">Settings</h1>
-      <p className="mt-1 text-sm text-secondary">Your field officer profile.</p>
+      <h1 className="text-xl font-semibold text-primary">{t('nav.settings')}</h1>
+      <p className="mt-1 text-sm text-secondary">{t('settings.subtitle')}</p>
 
       <div className="mt-8 max-w-xl rounded border border-border bg-surface p-6">
-        <Row label="Full name" value={profile?.full_name} />
-        <Row label="Email" value={session?.user?.email} />
-        <Row label="Cooperative" value={profile?.cooperative} />
-        <Row label="District" value={profile?.districts?.join(', ')} />
+        <Row label={t('settings.fullName')} value={profile?.full_name} />
+        <Row label={t('settings.email')} value={session?.user?.email} />
+        <Row label={t('settings.cooperative')} value={profile?.cooperative} />
+        <Row label={t('settings.district')} value={profile?.districts?.join(', ')} />
       </div>
 
       <Button onClick={handleSignOut} className="mt-6 bg-accent text-black">
-        Sign out
+        {t('signOut')}
       </Button>
     </AppLayout>
   )
