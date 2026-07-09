@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import AppLayout from '@/components/AppLayout'
+import Skeleton from '@/components/Skeleton'
 import {
   Select,
   SelectTrigger,
@@ -9,20 +10,20 @@ import {
 } from '@/components/ui/select'
 import { fetchAlerts } from '@/lib/api'
 import { useAuth } from '@/context/AuthContext'
+import { useLang } from '@/context/LanguageContext'
 
 const RISK_COLORS = { HIGH: '#ef4444', MEDIUM: '#f59e0b', LOW: '#22c55e' }
 const ALL = 'All districts'
 
 export default function Alerts() {
   const { profile } = useAuth()
+  const { t } = useLang()
   const [alerts, setAlerts] = useState(null)
   const [error, setError] = useState(null)
   const [country, setCountry] = useState('')
 
   useEffect(() => {
-    fetchAlerts()
-      .then(setAlerts)
-      .catch((err) => setError(err.message))
+    fetchAlerts().then(setAlerts).catch((err) => setError(err.message))
   }, [])
 
   const countries = useMemo(
@@ -30,13 +31,11 @@ export default function Alerts() {
     [alerts],
   )
 
-  // The officer's own country, derived from their district (once both are loaded).
   const homeCountry = useMemo(() => {
     if (!alerts || !profile?.districts?.length) return null
     return alerts.find((a) => a.district === profile.districts[0])?.country || null
   }, [alerts, profile])
 
-  // Show the officer's country by default; their explicit pick overrides it.
   const effectiveCountry = country || homeCountry || ALL
   const visible = alerts?.filter((a) => effectiveCountry === ALL || a.country === effectiveCountry) ?? []
   const highCount = visible.filter((a) => a.risk_level === 'HIGH').length
@@ -45,20 +44,17 @@ export default function Alerts() {
     <AppLayout>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-primary">Alerts</h1>
+          <h1 className="text-xl font-semibold text-primary">{t('nav.alerts')}</h1>
           <p className="mt-1 text-sm text-secondary">
-            Districts ranked by current disease risk.
-            {alerts ? ` ${highCount} at HIGH risk.` : ''}
+            {t('alerts.subtitle')} {alerts ? t('alerts.high', { n: highCount }) : ''}
           </p>
         </div>
         {alerts && (
           <Select value={effectiveCountry} onValueChange={setCountry}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {countries.map((c) => (
-                <SelectItem key={c} value={c}>{c}</SelectItem>
+                <SelectItem key={c} value={c}>{c === ALL ? t('alerts.all') : c}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -67,11 +63,20 @@ export default function Alerts() {
 
       {error && (
         <div className="mt-8 rounded border border-border bg-surface p-4 text-sm text-secondary">
-          Could not load alerts ({error}).
+          {t('alerts.loadError')} ({error}).
         </div>
       )}
 
-      {!alerts && !error && <p className="mt-8 text-sm text-secondary">Loading...</p>}
+      {!alerts && !error && (
+        <div className="mt-8 space-y-px overflow-hidden rounded border border-border bg-surface">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex items-center justify-between px-5 py-3">
+              <Skeleton className="h-8 w-40" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+          ))}
+        </div>
+      )}
 
       {alerts && (
         <div className="mt-8 divide-y divide-border rounded border border-border bg-surface">
@@ -80,28 +85,18 @@ export default function Alerts() {
             return (
               <div key={a.district} className="flex items-center justify-between px-5 py-3">
                 <div className="flex items-center gap-3">
-                  <span
-                    className="h-2 w-2 rounded-sm"
-                    style={{ backgroundColor: RISK_COLORS[a.risk_level] }}
-                  />
+                  <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: RISK_COLORS[a.risk_level] }} />
                   <div>
                     <div className="text-sm text-primary">
                       {a.district}
-                      {mine && <span className="ml-2 text-xs text-accent">your district</span>}
+                      {mine && <span className="ml-2 text-xs text-accent">{t('alerts.yourDistrict')}</span>}
                     </div>
                     <div className="text-xs text-secondary">{a.country}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-6">
-                  <span
-                    className="text-sm font-medium"
-                    style={{ color: RISK_COLORS[a.risk_level] }}
-                  >
-                    {a.risk_level}
-                  </span>
-                  <span className="w-12 text-right text-sm text-secondary">
-                    {Math.round(a.probability * 100)}%
-                  </span>
+                  <span className="text-sm font-medium" style={{ color: RISK_COLORS[a.risk_level] }}>{a.risk_level}</span>
+                  <span className="w-12 text-right text-sm text-secondary">{Math.round(a.probability * 100)}%</span>
                 </div>
               </div>
             )

@@ -7,9 +7,11 @@ import { Label } from '@/components/ui/label'
 import AuthLayout from '@/components/AuthLayout'
 import Wordmark from '@/components/Wordmark'
 import { signIn } from '@/lib/auth'
+import { useLang } from '@/context/LanguageContext'
 
 export default function SignIn() {
   const navigate = useNavigate()
+  const { t } = useLang()
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -24,7 +26,7 @@ export default function SignIn() {
       await signIn(email, password)
       navigate('/dashboard')
     } catch {
-      setError('Invalid email or password.')
+      setError(t('auth.invalidCreds'))
       setSubmitting(false)
     }
   }
@@ -32,18 +34,18 @@ export default function SignIn() {
   return (
     <AuthLayout>
       <Wordmark className="text-base" />
-      <p className="mb-6 mt-1 text-sm text-secondary">Sign in to your account</p>
+      <p className="mb-6 mt-1 text-sm text-secondary">{t('auth.signInSubtitle')}</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t('auth.email')}</Label>
           <Input id="email" type="email" value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="you@example.com" required />
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">{t('auth.password')}</Label>
           <div className="relative">
             <Input id="password" type={showPassword ? 'text' : 'password'}
               value={password} onChange={(event) => setPassword(event.target.value)}
@@ -59,13 +61,15 @@ export default function SignIn() {
         {error && <p className="text-sm text-risk-high">{error}</p>}
 
         <Button type="submit" disabled={submitting} className="w-full bg-accent text-black">
-          {submitting ? 'Signing in...' : 'Sign in'}
+          {submitting ? t('auth.signingIn') : t('auth.signInBtn')}
         </Button>
       </form>
 
       <p className="mt-6 text-sm text-secondary">
-        Don&apos;t have an account?{' '}
-        <Link to="/signup" className="transition-opacity hover:text-accent">Sign up</Link>
+        {t('auth.noAccount')}{' '}
+        <Link to="/signup" className="transition-opacity hover:text-accent">
+          {t('auth.signUpLink')}
+        </Link>
       </p>
     </AuthLayout>
   )
