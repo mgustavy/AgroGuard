@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import AppLayout from '@/components/AppLayout'
+import LanguageSelect from '@/components/LanguageSelect'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/context/AuthContext'
 import { useLang } from '@/context/LanguageContext'
@@ -7,7 +8,7 @@ import { signOut } from '@/lib/auth'
 
 function Row({ label, value }) {
   return (
-    <div className="flex justify-between border-b border-border py-3 last:border-0">
+    <div className="flex justify-between border-b border-border py-3">
       <span className="text-sm text-secondary">{label}</span>
       <span className="text-sm text-primary">{value || '-'}</span>
     </div>
@@ -34,6 +35,10 @@ export default function Settings() {
         <Row label={t('settings.email')} value={session?.user?.email} />
         <Row label={t('settings.cooperative')} value={profile?.cooperative} />
         <Row label={t('settings.district')} value={profile?.districts?.join(', ')} />
+        <div className="flex items-center justify-between py-3">
+          <span className="text-sm text-secondary">{t('settings.language')}</span>
+          <LanguageSelect className="h-9 w-[160px]" />
+        </div>
       </div>
 
       <Button onClick={handleSignOut} className="mt-6 bg-accent text-black">

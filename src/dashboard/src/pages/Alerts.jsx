@@ -89,9 +89,9 @@ export default function Alerts() {
                   <div>
                     <div className="text-sm text-primary">
                       {a.district}
-                      {mine && <span className="ml-2 text-xs text-accent">{t('alerts.yourDistrict')}</span>}
+                      {mine && <span className="ml-2 text-sm text-accent">{t('alerts.yourDistrict')}</span>}
                     </div>
-                    <div className="text-xs text-secondary">{a.country}</div>
+                    <div className="text-sm text-secondary">{a.country}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-6">
