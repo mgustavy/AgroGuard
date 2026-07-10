@@ -137,10 +137,15 @@ If you skip the `server_name` step, certbot obtains the certificate but reports
 
 ## Redeploying after changes
 
+One command syncs to `origin/main`, rebuilds the frontend, publishes it, and
+restarts the API:
+
 ```bash
-cd /opt/agroguard/AgroGuard
-sudo -u agroguard git pull
-sudo -u agroguard .venv/bin/pip install -r src/api/requirements.txt   # if deps changed
-cd src/dashboard && npm install && npm run build && sudo cp -r dist/* /var/www/agroguard/
-sudo systemctl restart agroguard-api
+sudo bash /opt/agroguard/AgroGuard/deploy/update.sh
+```
+
+If the API's Python dependencies changed, also run:
+
+```bash
+sudo -u agroguard /opt/agroguard/AgroGuard/.venv/bin/pip install -r /opt/agroguard/AgroGuard/src/api/requirements.txt
 ```
