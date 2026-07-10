@@ -1,7 +1,6 @@
 import { Map, AlertTriangle, Settings, LogOut } from 'lucide-react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import Wordmark from '@/components/Wordmark'
-import LanguageSelect from '@/components/LanguageSelect'
 import { signOut } from '@/lib/auth'
 import { useAuth } from '@/context/AuthContext'
 import { useLang } from '@/context/LanguageContext'
@@ -56,16 +55,13 @@ export default function Sidebar() {
       </nav>
 
       <div className="border-t border-border p-3">
-        <div className="mb-3 px-1">
-          <LanguageSelect className="h-8 w-full" />
-        </div>
         <div className="mb-2 flex items-center gap-3 px-1">
-          <div className="flex h-8 w-8 items-center justify-center rounded bg-elevated text-xs text-primary">
+          <div className="flex h-8 w-8 items-center justify-center rounded bg-elevated text-sm text-primary">
             {initials(profile?.full_name)}
           </div>
           <div className="min-w-0">
             <div className="truncate text-sm text-primary">{name}</div>
-            {email && <div className="truncate text-xs text-secondary">{email}</div>}
+            {email && <div className="truncate text-sm text-secondary">{email}</div>}
           </div>
         </div>
         <button

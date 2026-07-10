@@ -18,7 +18,7 @@ export default function ForecastChart({ series }) {
         {LEGEND.map(([label, color]) => (
           <div key={label} className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: color }} />
-            <span className="text-[11px] text-secondary">{label}</span>
+            <span className="text-sm text-secondary">{label}</span>
           </div>
         ))}
       </div>
@@ -27,7 +27,7 @@ export default function ForecastChart({ series }) {
         {/* Exact probability above each day */}
         <div className="flex gap-1.5">
           {series.map((p) => (
-            <span key={p.date} className="flex-1 text-center text-[10px] text-secondary">
+            <span key={p.date} className="flex-1 text-center text-sm text-secondary">
               {Math.round(p.probability * 100)}%
             </span>
           ))}
@@ -41,7 +41,7 @@ export default function ForecastChart({ series }) {
               className="pointer-events-none absolute inset-x-0 border-t border-dashed border-white/10"
               style={{ bottom: `${at * 100}%` }}
             >
-              <span className="absolute -top-2.5 right-0 text-[9px] text-secondary">{label}</span>
+              <span className="absolute -top-2.5 right-0 text-sm text-secondary">{label}</span>
             </div>
           ))}
           {series.map((p) => (
@@ -60,7 +60,7 @@ export default function ForecastChart({ series }) {
         {/* Dates */}
         <div className="mt-2 flex gap-1.5">
           {series.map((p) => (
-            <span key={p.date} className="flex-1 text-center text-[10px] text-secondary">
+            <span key={p.date} className="flex-1 text-center text-sm text-secondary">
               {dayLabel(p.date)}
             </span>
           ))}
