@@ -8,10 +8,17 @@ the Sprint 1 notebook, on real Open-Meteo ERA5 weather.
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/` | Health check; reports whether the model and district snapshot are loaded |
-| GET | `/risk/live/{district}?crop=maize` | Live scoring: fetch recent weather, engineer features, run the model (needs the model file) |
-| GET | `/risk/{district}?crop=maize` | Latest precomputed risk for a district (no model file needed) |
-| POST | `/risk` | Score an arbitrary set of the four features |
+| GET | `/risk/{district}?crop=maize` | Current risk: live weather scoring, falling back to the snapshot (see `data_source`) |
+| GET | `/risk/live/{district}?crop=maize` | Force live scoring; errors instead of falling back to the snapshot |
+| GET | `/forecast/{district}` | 14-day live risk forecast |
+| GET | `/alerts` | Current risk for all districts (live per district, snapshot fallback), highest first |
+| POST | `/risk` | Score an explicit set of the four features |
 | GET | `/districts`, `/crops` | Reference lists |
+
+All scoring endpoints apply a **crop multiplier** (`CROP_MODIFIERS`) so the
+probability changes with the selected crop, and return `crop_modifier: true`.
+This is a placeholder for crop-specific models in a future sprint. `/risk/{district}`
+and `/alerts` return `data_source: "live" | "snapshot"` so clients can flag stale data.
 
 ## Run it
 
