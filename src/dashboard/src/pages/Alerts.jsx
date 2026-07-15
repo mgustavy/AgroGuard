@@ -39,6 +39,7 @@ export default function Alerts() {
   const effectiveCountry = country || homeCountry || ALL
   const visible = alerts?.filter((a) => effectiveCountry === ALL || a.country === effectiveCountry) ?? []
   const highCount = visible.filter((a) => a.risk_level === 'HIGH').length
+  const snapshotCount = visible.filter((a) => a.data_source === 'snapshot').length
 
   return (
     <AppLayout>
@@ -48,6 +49,9 @@ export default function Alerts() {
           <p className="mt-1 text-sm text-secondary">
             {t('alerts.subtitle')} {alerts ? t('alerts.high', { n: highCount }) : ''}
           </p>
+          {snapshotCount > 0 && (
+            <p className="mt-1 text-sm text-risk-medium">{t('alerts.snapshotNote', { n: snapshotCount })}</p>
+          )}
         </div>
         {alerts && (
           <Select value={effectiveCountry} onValueChange={setCountry}>

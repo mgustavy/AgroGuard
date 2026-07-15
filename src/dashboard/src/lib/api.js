@@ -8,16 +8,10 @@ async function getJson(path) {
   return response.json()
 }
 
-// Prefer live model scoring on current weather; fall back to the precomputed
-// snapshot when live scoring is unavailable (for example, no model loaded).
+// The API scores live weather and falls back to the snapshot itself, reporting
+// which via data_source ("live" or "snapshot").
 export async function fetchDistrictRisk(district, crop) {
-  const name = encodeURIComponent(district)
-  const cropParam = crop.toLowerCase()
-  try {
-    return { ...(await getJson(`/risk/live/${name}?crop=${cropParam}`)), live: true }
-  } catch {
-    return { ...(await getJson(`/risk/${name}?crop=${cropParam}`)), live: false }
-  }
+  return getJson(`/risk/${encodeURIComponent(district)}?crop=${crop.toLowerCase()}`)
 }
 
 export async function fetchForecast(district) {

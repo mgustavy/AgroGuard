@@ -81,7 +81,10 @@ export default function Dashboard() {
           {data && (
             <p className="mt-1 text-sm text-secondary">
               {data.district}, {data.country} &middot;{' '}
-              {data.live ? t('liveWeather') : t('snapshot')} &middot; {data.as_of}
+              <span className={data.data_source === 'snapshot' ? 'text-risk-medium' : ''}>
+                {data.data_source === 'live' ? t('liveWeather') : t('snapshotWarning')}
+              </span>{' '}
+              &middot; {data.as_of}
             </p>
           )}
         </div>
