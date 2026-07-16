@@ -99,7 +99,7 @@ export default function SignUp() {
         {error && <p className="text-sm text-risk-high">{error}</p>}
 
         <Button type="submit" disabled={submitting || !form.district}
-          className="w-full bg-accent text-black">
+          className="w-full bg-accent text-on-accent">
           {submitting ? t('auth.creating') : t('auth.createBtn')}
         </Button>
       </form>

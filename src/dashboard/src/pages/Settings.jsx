@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import AppLayout from '@/components/AppLayout'
 import LanguageSelect from '@/components/LanguageSelect'
+import ThemeToggle from '@/components/ThemeToggle'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/context/AuthContext'
 import { useLang } from '@/context/LanguageContext'
@@ -35,13 +36,17 @@ export default function Settings() {
         <Row label={t('settings.email')} value={session?.user?.email} />
         <Row label={t('settings.cooperative')} value={profile?.cooperative} />
         <Row label={t('settings.district')} value={profile?.districts?.join(', ')} />
-        <div className="flex items-center justify-between py-3">
+        <div className="flex items-center justify-between border-b border-border py-3">
           <span className="text-sm text-secondary">{t('settings.language')}</span>
           <LanguageSelect className="h-9 w-[160px]" />
         </div>
+        <div className="flex items-center justify-between py-3">
+          <span className="text-sm text-secondary">{t('settings.theme')}</span>
+          <ThemeToggle showLabel className="-mr-3" />
+        </div>
       </div>
 
-      <Button onClick={handleSignOut} className="mt-6 bg-accent text-black">
+      <Button onClick={handleSignOut} className="mt-6 bg-accent text-on-accent">
         {t('signOut')}
       </Button>
     </AppLayout>

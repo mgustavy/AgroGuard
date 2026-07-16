@@ -5,21 +5,22 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#0a0a0a',
-        surface: '#111111',
-        elevated: '#1a1a1a',
-        border: '#262626',
-        primary: '#fafafa',
-        secondary: '#71717a',
-        accent: '#22c55e',
+        background: 'var(--background)',
+        surface: 'var(--surface)',
+        elevated: 'var(--elevated)',
+        border: 'var(--border)',
+        primary: 'var(--primary)',
+        secondary: 'var(--secondary)',
+        accent: 'var(--accent)',
+        'on-accent': 'var(--on-accent)',
         risk: {
-          high: '#ef4444',
-          medium: '#f59e0b',
-          low: '#22c55e',
+          high: 'var(--risk-high)',
+          medium: 'var(--risk-medium)',
+          low: 'var(--risk-low)',
         },
       },
       borderColor: {
-        DEFAULT: '#262626',
+        DEFAULT: 'var(--border)',
       },
       fontFamily: {
         sans: ['Geist', 'ui-sans-serif', 'system-ui', 'sans-serif'],

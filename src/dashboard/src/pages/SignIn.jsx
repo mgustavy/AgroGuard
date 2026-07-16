@@ -60,7 +60,7 @@ export default function SignIn() {
 
         {error && <p className="text-sm text-risk-high">{error}</p>}
 
-        <Button type="submit" disabled={submitting} className="w-full bg-accent text-black">
+        <Button type="submit" disabled={submitting} className="w-full bg-accent text-on-accent">
           {submitting ? t('auth.signingIn') : t('auth.signInBtn')}
         </Button>
       </form>
