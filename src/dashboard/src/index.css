@@ -2,6 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  Theme tokens. :root is the light theme (default); html.dark overrides for dark.
+  Light values are tuned so every text/background pair clears WCAG AA (>= 4.5:1)
+  so no detail is lost, while dark keeps the original palette.
+*/
+:root {
+  --background: #f4f4f5;
+  --surface: #ffffff;
+  --elevated: #f4f4f5;
+  --border: #d4d4d8;
+  --primary: #0a0a0a;
+  --secondary: #52525b;
+  --accent: #15803d;
+  --on-accent: #ffffff;
+  --risk-high: #dc2626;
+  --risk-medium: #b45309;
+  --risk-low: #15803d;
+  --shimmer: rgba(0, 0, 0, 0.06);
+  --hairline: rgba(0, 0, 0, 0.14);
+  color-scheme: light;
+}
+
+html.dark {
+  --background: #0a0a0a;
+  --surface: #111111;
+  --elevated: #1a1a1a;
+  --border: #262626;
+  --primary: #fafafa;
+  --secondary: #71717a;
+  --accent: #22c55e;
+  --on-accent: #0a0a0a;
+  --risk-high: #ef4444;
+  --risk-medium: #f59e0b;
+  --risk-low: #22c55e;
+  --shimmer: rgba(255, 255, 255, 0.05);
+  --hairline: rgba(255, 255, 255, 0.1);
+  color-scheme: dark;
+}
+
 html,
 body,
 #root {
@@ -9,8 +48,8 @@ body,
 }
 
 body {
-  background-color: #0a0a0a;
-  color: #fafafa;
+  background-color: var(--background);
+  color: var(--primary);
   font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }

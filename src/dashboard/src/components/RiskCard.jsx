@@ -1,10 +1,5 @@
 import { useLang } from '@/context/LanguageContext'
-
-const RISK_COLORS = {
-  HIGH: '#ef4444',
-  MEDIUM: '#f59e0b',
-  LOW: '#22c55e',
-}
+import { RISK_COLORS } from '@/lib/risk'
 
 export default function RiskCard({ level = 'HIGH', probability = 78, recommendation }) {
   const { t } = useLang()

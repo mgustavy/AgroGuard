@@ -75,7 +75,7 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold text-primary">{t('riskOverview')}</h1>
           {data && (
@@ -103,7 +103,7 @@ export default function Dashboard() {
           <>
             <RiskCard level={data.risk_level} probability={Math.round(data.probability * 100)}
               recommendation={data.recommendation} />
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
               <StatCard icon={Droplets} label={t('consecutiveWetDays')}
                 value={`${features.consecutive_wet_days} ${t('days')}`} accent />
               <StatCard icon={Thermometer} label={t('temperatureSpread')}

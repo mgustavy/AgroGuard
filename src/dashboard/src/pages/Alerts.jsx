@@ -11,8 +11,8 @@ import {
 import { fetchAlerts } from '@/lib/api'
 import { useAuth } from '@/context/AuthContext'
 import { useLang } from '@/context/LanguageContext'
+import { RISK_COLORS } from '@/lib/risk'
 
-const RISK_COLORS = { HIGH: '#ef4444', MEDIUM: '#f59e0b', LOW: '#22c55e' }
 const ALL = 'All districts'
 
 export default function Alerts() {
@@ -43,7 +43,7 @@ export default function Alerts() {
 
   return (
     <AppLayout>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold text-primary">{t('nav.alerts')}</h1>
           <p className="mt-1 text-sm text-secondary">
