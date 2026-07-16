@@ -149,3 +149,73 @@ If the API's Python dependencies changed, also run:
 ```bash
 sudo -u agroguard /opt/agroguard/AgroGuard/.venv/bin/pip install -r /opt/agroguard/AgroGuard/src/api/requirements.txt
 ```
+
+## Automated deploys with GitHub Actions
+
+`.github/workflows/deploy.yml` runs `update.sh` on the VM over SSH on every push
+to `main` (and via the "Run workflow" button on the Actions tab). `update.sh`
+self-elevates with sudo, so the deploy user does not need to be root, but it does
+need passwordless sudo for that one script. Set this up once.
+
+### 1. Create a dedicated deploy key
+
+On your own machine, generate a keypair used only for this deploy (no passphrase,
+so CI can use it non-interactively):
+
+```bash
+ssh-keygen -t ed25519 -C "agroguard-github-actions-deploy" -f agroguard_deploy_key -N ""
+```
+
+This writes `agroguard_deploy_key` (private) and `agroguard_deploy_key.pub`
+(public).
+
+### 2. Authorise the public key on the VM
+
+Add the public key to the deploy user's `authorized_keys`. Use the same user you
+will put in the `VM_USER` secret; the `agroguard` service user works well:
+
+```bash
+sudo -u agroguard mkdir -p /opt/agroguard/.ssh
+sudo -u agroguard chmod 700 /opt/agroguard/.ssh
+cat agroguard_deploy_key.pub | sudo -u agroguard tee -a /opt/agroguard/.ssh/authorized_keys
+sudo -u agroguard chmod 600 /opt/agroguard/.ssh/authorized_keys
+```
+
+Confirm it works from your machine (no password prompt):
+
+```bash
+ssh -i agroguard_deploy_key agroguard@YOUR_VM_IP echo ok
+```
+
+### 3. Allow passwordless sudo for the redeploy script
+
+The workflow logs in as the deploy user and runs `bash .../update.sh`, which then
+re-runs itself with `sudo -n`. Grant just that one command without a password:
+
+```bash
+echo 'agroguard ALL=(ALL) NOPASSWD: /usr/bin/bash /opt/agroguard/AgroGuard/deploy/update.sh' | sudo tee /etc/sudoers.d/agroguard-deploy
+sudo chmod 440 /etc/sudoers.d/agroguard-deploy
+sudo visudo -c
+```
+
+If `which bash` on the VM is not `/usr/bin/bash`, use that path in the rule
+instead. As a broader fallback for a single-purpose VM you can use
+`NOPASSWD: ALL`, but the scoped rule above is safer.
+
+### 4. Add the repository secrets
+
+In GitHub: repo **Settings -> Secrets and variables -> Actions -> New repository
+secret**. Add three:
+
+- `VM_HOST` the VM's public IP or hostname
+- `VM_USER` the deploy user (`agroguard`)
+- `VM_SSH_KEY` the full contents of the private `agroguard_deploy_key` file,
+  including the `BEGIN` and `END` lines
+
+### 5. Trigger and verify
+
+Push to `main` or use "Run workflow" on the Actions tab. Open the run and check
+the log: on success you see the `update.sh` output ("Syncing repo", "Building the
+frontend", "Done"), and the site reflects the change after a hard refresh. Once
+the private key is stored in the `VM_SSH_KEY` secret, delete your local copy of
+it.

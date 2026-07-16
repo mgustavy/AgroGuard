@@ -1,13 +1,22 @@
 #!/usr/bin/env bash
 #
-# AgroGuard one-command redeploy. Run on the VM as root:
+# AgroGuard one-command redeploy. Run on the VM:
 #
 #   sudo bash /opt/agroguard/AgroGuard/deploy/update.sh
 #
 # It syncs the repo to origin/main, rebuilds the frontend, publishes it, and
 # restarts the API. Your local .env is untracked, so it is never touched.
+#
+# The script needs root (it writes to the web root and restarts a service). If
+# it is started without root, for example by the GitHub Actions SSH deploy, it
+# re-runs itself with sudo. That needs passwordless sudo for the deploy user;
+# see deploy/README.md, "Automated deploys with GitHub Actions".
 
 set -euo pipefail
+
+if [ "$(id -u)" -ne 0 ]; then
+  exec sudo -n bash "$0" "$@"
+fi
 
 REPO=/opt/agroguard/AgroGuard
 OWNER=agroguard
