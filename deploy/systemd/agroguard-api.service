@@ -18,7 +18,11 @@ Environment="AGROGUARD_MODEL_PATH=/opt/agroguard/AgroGuard/models/xgb_risk_model
 Environment="AGROGUARD_CORS_ORIGINS=http://YOUR_DOMAIN_OR_IP"
 # Bind to localhost only; nginx is the public entry point.
 # Use --workers 1 on a 1 GB VM; 2 is comfortable on 2 GB.
-ExecStart=/opt/agroguard/AgroGuard/.venv/bin/uvicorn src.api.main:app --host 127.0.0.1 --port 8000 --workers 2
+# --root-path /api tells FastAPI it is served under the nginx /api prefix, so the
+# Swagger UI at /api/docs loads its spec from /api/openapi.json instead of the
+# bare /openapi.json (which nginx would route to the frontend). It does not change
+# routing; nginx still strips /api before requests reach the app.
+ExecStart=/opt/agroguard/AgroGuard/.venv/bin/uvicorn src.api.main:app --host 127.0.0.1 --port 8000 --workers 2 --root-path /api
 Restart=always
 RestartSec=3
 
