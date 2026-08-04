@@ -12,13 +12,8 @@ AgroGuard is a weather-driven crop disease early-warning system for East African
 
 ```
 AgroGuard/
-├── notebooks/
-│   ├── data_pipeline.ipynb        # Fetch weather, engineer features, label, train, evaluate
-│   ├── sprint1_features.csv       # Cached engineered features for all districts
-│   ├── weather_cache.csv          # Cached raw weather
-│   ├── feature_importance.png     # SHAP feature-importance figure
-│   ├── risk_by_country.png        # Risk-distribution-by-country figure
-│   └── xgb_risk_model.joblib      # Model copy exported by the notebook
+├── notebooks/                     # Data pipeline notebook, cached data, exported figures/model
+│   └── data_pipeline.ipynb        # Fetch weather, engineer features, label, train, evaluate
 ├── src/
 │   ├── api/                       # FastAPI backend
 │   │   ├── main.py                # App, endpoints, and scoring logic
@@ -145,13 +140,7 @@ To run locally instead of Colab, install Jupyter in the activated virtual enviro
 
 ### 1. Set up environment variables (optional)
 
-The API runs with sensible defaults and needs no configuration for local use. All variables are optional overrides:
-
-- `AGROGUARD_MODEL_PATH` defaults to `models/xgb_risk_model.joblib` at the repo root.
-- `AGROGUARD_CORS_ORIGINS` defaults to `*` (all origins) in development.
-- `AGROGUARD_RISK_DATA` defaults to `src/api/data/district_risk.json`.
-
-The API does not use a database connection or any API keys (weather comes from the keyless Open-Meteo API). To override a default, export it before starting the server, for example:
+The API runs with sensible defaults and needs no configuration for local use. It uses no database connection and no API keys (weather comes from the keyless Open-Meteo API). To override a default, export the variable before starting the server (see the [Environment Variables](#environment-variables) table for all options), for example:
 
 ```bash
 export AGROGUARD_CORS_ORIGINS="http://localhost:5173"
