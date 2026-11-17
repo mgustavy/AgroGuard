@@ -4,6 +4,7 @@ import SignUp from '@/pages/SignUp'
 import Dashboard from '@/pages/Dashboard'
 import Alerts from '@/pages/Alerts'
 import SettingsPage from '@/pages/Settings'
+import Privacy from '@/pages/Privacy'
 import { useAuth } from '@/context/AuthContext'
 
 function ProtectedRoute({ children }) {
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/" element={<Navigate to="/signin" replace />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/privacy" element={<Privacy />} />
         <Route
           path="/dashboard"
           element={

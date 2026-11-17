@@ -25,6 +25,7 @@ export default function SignUp() {
   const [form, setForm] = useState({
     fullName: '', email: '', password: '', cooperative: '', district: '',
   })
+  const [acceptedPrivacyPolicy, setAcceptedPrivacyPolicy] = useState(false)
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -96,9 +97,23 @@ export default function SignUp() {
           <PasswordStrength value={form.password} />
         </div>
 
+        <div className="flex items-start gap-2">
+          <input id="consent" type="checkbox" checked={acceptedPrivacyPolicy}
+            onChange={(event) => setAcceptedPrivacyPolicy(event.target.checked)}
+            className="mt-0.5 h-4 w-4 accent-[var(--accent)]" required />
+          <label htmlFor="consent" className="text-sm text-secondary">
+            {t('auth.consent')}{' '}
+            {/* Opens in a new tab so reading the policy does not wipe the form. */}
+            <Link to="/privacy" target="_blank" rel="noopener noreferrer"
+              className="text-primary underline transition-opacity hover:text-accent">
+              {t('auth.privacyLink')}
+            </Link>
+          </label>
+        </div>
+
         {error && <p className="text-sm text-risk-high">{error}</p>}
 
-        <Button type="submit" disabled={submitting || !form.district}
+        <Button type="submit" disabled={submitting || !form.district || !acceptedPrivacyPolicy}
           className="w-full bg-accent text-on-accent">
           {submitting ? t('auth.creating') : t('auth.createBtn')}
         </Button>
