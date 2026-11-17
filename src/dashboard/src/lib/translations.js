@@ -79,6 +79,8 @@ export const translations = {
     'settings.cancel': "Cancel",
     'settings.deleting': "Deleting...",
     'settings.deleteError': "Could not delete your account. Please try again.",
+    'confidence.low': "Low confidence: the model was trained only on maize data from Arusha, Mbeya and Morogoro (Tanzania). Treat this as a screening signal and check the field for symptoms before applying any treatment.",
+    'confidence.lowShort': "low confidence",
   },
   fr: {
     'nav.districts': 'Districts',
@@ -154,6 +156,8 @@ export const translations = {
     'settings.cancel': "Annuler",
     'settings.deleting': "Suppression...",
     'settings.deleteError': "Impossible de supprimer votre compte. Veuillez réessayer.",
+    'confidence.low': "Confiance faible : le modèle a été entraîné uniquement sur des données de maïs d'Arusha, Mbeya et Morogoro (Tanzanie). Considérez ceci comme un signal de dépistage et vérifiez les symptômes au champ avant tout traitement.",
+    'confidence.lowShort': "confiance faible",
   },
   sw: {
     'nav.districts': 'Wilaya',
@@ -229,5 +233,7 @@ export const translations = {
     'settings.cancel': "Ghairi",
     'settings.deleting': "Inafuta...",
     'settings.deleteError': "Imeshindwa kufuta akaunti yako. Tafadhali jaribu tena.",
+    'confidence.low': "Uhakika mdogo: modeli ilifunzwa kwa data ya mahindi kutoka Arusha, Mbeya na Morogoro (Tanzania) pekee. Ichukulie kama ishara ya uchunguzi na kagua shamba kuona dalili kabla ya kutumia dawa yoyote.",
+    'confidence.lowShort': "uhakika mdogo",
   },
 }

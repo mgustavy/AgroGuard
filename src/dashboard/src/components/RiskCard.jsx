@@ -1,7 +1,7 @@
 import { useLang } from '@/context/LanguageContext'
 import { RISK_COLORS } from '@/lib/risk'
 
-export default function RiskCard({ level = 'HIGH', probability = 78, recommendation }) {
+export default function RiskCard({ level = 'HIGH', probability = 78, recommendation, confidence }) {
   const { t } = useLang()
   return (
     <div className="rounded border border-border bg-surface p-6">
@@ -22,6 +22,12 @@ export default function RiskCard({ level = 'HIGH', probability = 78, recommendat
         <div className="text-sm text-secondary">{t('recommendation')}</div>
         <p className="mt-1 text-primary">{recommendation}</p>
       </div>
+
+      {confidence === 'low' && (
+        <p className="mt-4 rounded border border-risk-medium p-3 text-sm text-primary">
+          {t('confidence.low')}
+        </p>
+      )}
     </div>
   )
 }

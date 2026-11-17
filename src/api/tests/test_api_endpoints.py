@@ -57,3 +57,19 @@ def test_banana_scores_no_higher_than_maize_for_same_weather():
     banana = client.post("/risk", json={**weather, "crop": "banana"}).json()["probability"]
     # The banana multiplier (0.85) is below maize (1.00), so it can never score higher.
     assert banana <= maize
+
+
+def test_maize_in_a_training_district_has_standard_confidence():
+    payload = {**VALID_PAYLOAD, "district": "Arusha", "crop": "maize"}
+    assert client.post("/risk", json=payload).json()["confidence"] == "standard"
+
+
+def test_district_outside_training_data_has_low_confidence():
+    # Huye (Rwanda) was never in the training labels, so its score is extrapolation.
+    assert client.post("/risk", json=VALID_PAYLOAD).json()["confidence"] == "low"
+
+
+def test_other_crops_have_low_confidence_even_in_training_districts():
+    # Beans only get a hand-set multiplier on the maize model.
+    payload = {**VALID_PAYLOAD, "district": "Arusha", "crop": "beans"}
+    assert client.post("/risk", json=payload).json()["confidence"] == "low"
