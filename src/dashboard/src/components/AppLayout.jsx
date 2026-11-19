@@ -23,7 +23,17 @@ export default function AppLayout({ children }) {
 
       <Sidebar open={navOpen} onClose={() => setNavOpen(false)} />
 
-      <main className="p-4 sm:p-6 md:ml-60 md:p-8">{children}</main>
+      <main className="p-4 sm:p-6 md:ml-60 md:p-8">
+        {children}
+        {/* Required by the CC BY 4.0 licences on Open-Meteo and Copernicus ERA5 data:
+            credit must sit next to anywhere the weather-derived risk data is shown. */}
+        <footer className="mt-12 text-xs text-secondary">
+          Weather data by{' '}
+          <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer"
+            className="underline hover:text-accent">Open-Meteo.com</a>
+          {' '}(CC BY 4.0). Generated using Copernicus Climate Change Service ERA5 data (CC BY 4.0).
+        </footer>
+      </main>
     </div>
   )
 }
