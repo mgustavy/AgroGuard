@@ -40,7 +40,7 @@ const SECTIONS = [
   {
     heading: 'Where your data is stored',
     body: [
-      'Account data is stored by Supabase in its [SUPABASE REGION] data centre. The AgroGuard API and website run on Strettch Cloud servers in Rwanda and do not store personal data.',
+      'Account data is stored by Supabase, whose data centres are all outside Africa, so your account details are stored outside Rwanda. The AgroGuard API and website run on Strettch Cloud servers in Rwanda and do not store personal data.',
     ],
   },
   {
