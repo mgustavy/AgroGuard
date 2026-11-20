@@ -102,7 +102,7 @@ export default function Dashboard() {
         {data ? (
           <>
             <RiskCard level={data.risk_level} probability={Math.round(data.probability * 100)}
-              recommendation={data.recommendation} />
+              recommendation={data.recommendation} confidence={data.confidence} />
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
               <StatCard icon={Droplets} label={t('consecutiveWetDays')}
                 value={`${features.consecutive_wet_days} ${t('days')}`} accent />

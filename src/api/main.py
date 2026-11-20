@@ -52,6 +52,13 @@ CROP_MODIFIERS = {
     "banana": 0.85,  # less sensitive overall
 }
 
+# The only data the model has seen: maize disease labels from these three Tanzanian
+# districts. Scores anywhere else, or for other crops (which only get a hand-set
+# multiplier), are extrapolation, so the API flags them as low confidence instead of
+# presenting them with the same certainty as in-sample scores.
+TRAINING_DISTRICTS = {"Arusha", "Mbeya", "Morogoro"}
+TRAINING_CROP = "maize"
+
 RECOMMENDATIONS = {
     "HIGH": {
         "maize":   "Apply fungicide within 48 hours. Avoid overhead irrigation. Monitor neighbouring plots.",
@@ -132,6 +139,7 @@ class RiskResponse(BaseModel):
     recommendation: str
     model_version: str
     crop_modifier: bool
+    confidence: Literal["standard", "low"]
 
 
 class DistrictFeatures(BaseModel):
@@ -153,6 +161,7 @@ class DistrictRiskResponse(BaseModel):
     model_version: str
     data_source: Literal["live", "snapshot"]
     crop_modifier: bool
+    confidence: Literal["standard", "low"]
 
 
 class ForecastPoint(BaseModel):
@@ -175,6 +184,7 @@ class AlertItem(BaseModel):
     probability: float
     as_of: str
     data_source: Literal["live", "snapshot"]
+    confidence: Literal["standard", "low"]
 
 
 def band_probability(prob: float) -> str:
@@ -183,6 +193,13 @@ def band_probability(prob: float) -> str:
         if prob >= threshold:
             return level
     return "LOW"
+
+
+def score_confidence(district: str, crop: str = TRAINING_CROP) -> str:
+    """Standard only when both the district and the crop are inside the training data."""
+    if district in TRAINING_DISTRICTS and crop == TRAINING_CROP:
+        return "standard"
+    return "low"
 
 
 def apply_crop_modifier(probability: float, crop: str) -> float:
@@ -289,6 +306,7 @@ def score_district(district: str, crop: str) -> DistrictRiskResponse:
         model_version=version,
         data_source=source,
         crop_modifier=True,
+        confidence=score_confidence(district, crop),
     )
 
 
@@ -316,6 +334,7 @@ def alert_for_district(district: str, coords: dict) -> Optional[AlertItem]:
         probability=round(prob, 2),
         as_of=as_of,
         data_source=source,
+        confidence=score_confidence(district),
     )
 
 
@@ -356,6 +375,7 @@ def get_risk(request: RiskRequest):
         recommendation=RECOMMENDATIONS[risk_level][request.crop],
         model_version=model_version,
         crop_modifier=True,
+        confidence=score_confidence(request.district, request.crop),
     )
 
 
@@ -407,6 +427,7 @@ def get_live_risk(
         model_version="xgboost-v0.2 (live Open-Meteo weather)",
         data_source="live",
         crop_modifier=True,
+        confidence=score_confidence(district, crop),
     )
 
 

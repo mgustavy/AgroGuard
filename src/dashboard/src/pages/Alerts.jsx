@@ -95,7 +95,12 @@ export default function Alerts() {
                       {a.district}
                       {mine && <span className="ml-2 text-sm text-accent">{t('alerts.yourDistrict')}</span>}
                     </div>
-                    <div className="text-sm text-secondary">{a.country}</div>
+                    <div className="text-sm text-secondary">
+                      {a.country}
+                      {a.confidence === 'low' && (
+                        <span className="ml-2 text-risk-medium">{t('confidence.lowShort')}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-6">
